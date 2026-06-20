@@ -17,6 +17,8 @@ const restaurantSchema = new mongoose.Schema(
     contactNumber: { type: String, default: "" },
     frontendUrl:   { type: String, default: "" },            // customer website
     backendUrl:    { type: String, default: "" },            // this API base
+    adminEmail:    { type: String, default: "" },            // owner dashboard login (from super admin portal)
+    adminPassword: { type: String, default: "", select: false },
     status:        { type: String, enum: ["active","blocked","suspended"], default: "active" },
     joinedDate:    { type: Date, default: Date.now },
     settings: {

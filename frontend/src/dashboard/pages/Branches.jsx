@@ -4,12 +4,13 @@ import { fmt, LiveDot, Modal, SectionHeader } from '../components/ui';
 import { CITIES, POS_SYSTEMS } from '../data/mockData';
 
 export default function Branches() {
-  const { branchList, updateBranch, getClientBranches, addToast } = useApp();
+  const { branchList, updateBranch, getClientBranches, addBranchArea, removeBranchArea, addToast } = useApp();
   const branches = getClientBranches();
   const topRev = Math.max(...branches.map(b=>b.revenue||0), 1);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editBranch, setEditBranch] = useState(null);
   const [form, setForm] = useState({});
+  const [newArea, setNewArea] = useState({});
 
   const openEdit = (b) => {
     setEditBranch(b);
@@ -22,6 +23,13 @@ export default function Branches() {
     setShowEditModal(false);
   };
   const toggle = (b) => updateBranch(b.id, { status: b.status==='open' ? 'closed' : 'open' });
+
+  const handleAddArea = (branch) => {
+    const area = (newArea[branch.id] || '').trim();
+    if (!area) return;
+    addBranchArea(branch.id, area);
+    setNewArea(prev => ({ ...prev, [branch.id]: '' }));
+  };
 
   return (
     <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
@@ -88,6 +96,35 @@ export default function Branches() {
                     <div style={{ fontSize:10, color:'var(--text-m)', marginBottom:4 }}>Revenue share</div>
                     <div className="progress" style={{ width:200 }}>
                       <div className="progress-fill" style={{ width:`${Math.round((b.revenue||0)/topRev*100)}%`, background:'linear-gradient(90deg,var(--accent),var(--accent-h))' }}/>
+                    </div>
+                  </div>
+                  <div style={{ marginTop:12 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>Delivery Areas / Towns</div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                      {(b.areas || []).length === 0 && (
+                        <span style={{ fontSize:11, color:'var(--text-m)' }}>No areas added yet</span>
+                      )}
+                      {(b.areas || []).map(area => (
+                        <span key={area} className="badge badge-blue" style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                          {area}
+                          <button
+                            type="button"
+                            onClick={() => removeBranchArea(b.id, area)}
+                            style={{ background:'none', border:'none', color:'inherit', cursor:'pointer', fontSize:12, lineHeight:1 }}
+                          >×</button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <input
+                        className="input"
+                        style={{ flex:1, fontSize:12 }}
+                        placeholder="Add town or area (e.g. Model Town)"
+                        value={newArea[b.id] || ''}
+                        onChange={e => setNewArea(prev => ({ ...prev, [b.id]: e.target.value }))}
+                        onKeyDown={e => e.key === 'Enter' && handleAddArea(b)}
+                      />
+                      <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={() => handleAddArea(b)}>Add</button>
                     </div>
                   </div>
                 </div>

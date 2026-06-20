@@ -3,7 +3,7 @@ import Product from "../../Models/Product.js";
 
 const getCtx = (user, body = {}) => ({
   restaurantId: user.restaurantId || body.restaurantId,
-  branchId:     user.branchId     || body.branchId,
+  branchId:     body.branchId || user.branchId,
 });
 
 /**

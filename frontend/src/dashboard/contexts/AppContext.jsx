@@ -1,12 +1,3 @@
-/**
- * AppContext.jsx — Dynamic version connected to real MongoDB backend.
- *
- * Drop-in replacement for the static mockData version.
- * Place at: src/contexts/AppContext.jsx
- *
- * Required:  src/services/api.js  (copy frontend-integration/api.js → src/services/api.js)
- * Required:  VITE_API_URL=http://localhost:5000/api  in .env
- */
 
 import React, {
   createContext, useContext, useState,
@@ -69,6 +60,12 @@ export function AppProvider({ children }) {
   // ── Helpers ──────────────────────────────────────────────────────────────
   const setLoad = (key, val) => setLoading(prev => ({ ...prev, [key]: val }));
 
+  const refId = (value) => {
+    if (!value) return null;
+    if (typeof value === "object" && value._id) return String(value._id);
+    return String(value);
+  };
+
   // Map backend user object (role strings differ slightly) to frontend ROLES
   const mapRole = (backendRole) => {
     const map = {
@@ -124,22 +121,25 @@ export function AppProvider({ children }) {
 
   // ── Apply login ───────────────────────────────────────────────────────────
   const applyLogin = (userData) => {
+    const branchIds = (userData.branchIds || []).map((b) => refId(b)).filter(Boolean);
+    const branchId = refId(userData.branchId) || branchIds[0] || null;
+
     const frontendUser = {
       id:           userData.id || userData._id,
       name:         userData.name,
       email:        userData.email,
       role:         mapRole(userData.role),
       accountType:  userData.accountType,
-      restaurantId: userData.restaurantId?._id || userData.restaurantId,
-      branchId:     userData.branchId,
-      branchIds:    userData.branchIds || [],
+      restaurantId: refId(userData.restaurantId),
+      branchId,
+      branchIds,
       permissions:  userData.permissions || [],
       avatar:       userData.avatar || userData.name?.slice(0,2).toUpperCase(),
       color:        userData.color || "#6366f1",
     };
     setCurrentUser(frontendUser);
     setActiveClientId(frontendUser.restaurantId || null);
-    if (frontendUser.branchId) setActiveBranchId(frontendUser.branchId);
+    if (branchId) setActiveBranchId(branchId);
     setActiveNav(
       frontendUser.role === ROLES.COUNTER ? "counter" :
       frontendUser.role === ROLES.KITCHEN ? "kitchen" : "dashboard"
@@ -200,8 +200,11 @@ export function AppProvider({ children }) {
   const fetchBranches = async () => {
     try {
       const res = await api.branches.getAll();
-      // Map _id → id for frontend compatibility
-      setBranchList((res.data || []).map(b => ({ ...b, id: b._id || b.id })));
+      setBranchList((res.data || []).map(b => ({
+        ...b,
+        id: b._id || b.id,
+        name: b.name || b.branchName || "Branch",
+      })));
     } catch (e) { console.warn("fetchBranches:", e.message); }
   };
 
@@ -216,9 +219,33 @@ export function AppProvider({ children }) {
   const addBranch = useCallback(async (data) => {
     try {
       const res = await api.branches.create(data);
-      setBranchList(prev => [...prev, { ...res.data, id: res.data._id }]);
+      setBranchList(prev => [...prev, { ...res.data, id: res.data._id, name: res.data.name || res.data.branchName }]);
       addToast("Branch created!", "success");
       return res.data;
+    } catch (e) { addToast(e.message, "error"); }
+  }, [addToast]);
+
+  const addBranchArea = useCallback(async (branchId, area) => {
+    try {
+      const res = await api.branches.addArea(branchId, area);
+      setBranchList(prev => prev.map(b =>
+        (b.id === branchId || b._id === branchId)
+          ? { ...b, areas: res.data.areas, id: res.data._id || branchId }
+          : b
+      ));
+      addToast(`Area "${area}" added!`, "success");
+    } catch (e) { addToast(e.message, "error"); }
+  }, [addToast]);
+
+  const removeBranchArea = useCallback(async (branchId, area) => {
+    try {
+      const res = await api.branches.removeArea(branchId, area);
+      setBranchList(prev => prev.map(b =>
+        (b.id === branchId || b._id === branchId)
+          ? { ...b, areas: res.data.areas, id: res.data._id || branchId }
+          : b
+      ));
+      addToast(`Area "${area}" removed`, "info");
     } catch (e) { addToast(e.message, "error"); }
   }, [addToast]);
 
@@ -265,7 +292,8 @@ export function AppProvider({ children }) {
 
   const addOrder = useCallback(async (data) => {
     try {
-      const res = await api.orders.create(data);
+      const payload = activeBranchId ? { ...data, branchId: activeBranchId } : data;
+      const res = await api.orders.create(payload);
       const newOrder = { ...res.data, id: res.data._id };
       setOrderList(prev => [newOrder, ...prev]);
       addToast("New order added!", "success", 4000);
@@ -274,9 +302,7 @@ export function AppProvider({ children }) {
       addToast(e.message, "error");
       throw e;
     }
-  }, [addToast]);
-
-  // ── Products ──────────────────────────────────────────────────────────────
+  }, [addToast, activeBranchId]);
   const fetchProducts = async () => {
     if (!currentUser) return;
     try {
@@ -288,13 +314,14 @@ export function AppProvider({ children }) {
 
   const addProduct = useCallback(async (data) => {
     try {
-      const res = await api.products.create(data);
+      const payload = activeBranchId ? { ...data, branchId: activeBranchId } : data;
+      const res = await api.products.create(payload);
       const p = { ...res.data, id: res.data._id };
       setProductList(prev => [...prev, p]);
       addToast(`"${data.name}" added!`, "success");
       return p;
     } catch (e) { addToast(e.message, "error"); throw e; }
-  }, [addToast]);
+  }, [addToast, activeBranchId]);
 
   const updateProduct = useCallback(async (id, updates) => {
     try {
@@ -331,13 +358,14 @@ export function AppProvider({ children }) {
 
   const addCategory = useCallback(async (data) => {
     try {
-      const res = await api.categories.create(data);
+      const payload = activeBranchId ? { ...data, branchId: activeBranchId } : data;
+      const res = await api.categories.create(payload);
       const c = { ...res.data, id: res.data._id };
       setCategoryList(prev => [...prev, c]);
       addToast("Category added!", "success");
       return c;
     } catch (e) { addToast(e.message, "error"); throw e; }
-  }, [addToast]);
+  }, [addToast, activeBranchId]);
 
   const updateCategory = useCallback(async (id, updates) => {
     try {
@@ -382,6 +410,14 @@ export function AppProvider({ children }) {
     } catch (e) { addToast(e.message, "error"); }
   }, [addToast]);
 
+  const updateStaffPermissions = useCallback(async (id, permissions) => {
+    try {
+      const res = await api.staff.updatePermissions(id, permissions);
+      setUserList(prev => prev.map(u => (u.id === id || u._id === id) ? { ...res.data, id: res.data._id } : u));
+      addToast("Permissions updated!", "success");
+    } catch (e) { addToast(e.message, "error"); }
+  }, [addToast]);
+
   const removeStaff = useCallback(async (id) => {
     try {
       await api.staff.delete(id);
@@ -402,13 +438,14 @@ export function AppProvider({ children }) {
 
   const addInventory = useCallback(async (data) => {
     try {
-      const res = await api.inventory.create(data);
+      const payload = activeBranchId ? { ...data, branchId: activeBranchId } : data;
+      const res = await api.inventory.create(payload);
       const item = { ...res.data, id: res.data._id };
       setInventoryList(prev => [...prev, item]);
       addToast("Item added!", "success");
       return item;
     } catch (e) { addToast(e.message, "error"); throw e; }
-  }, [addToast]);
+  }, [addToast, activeBranchId]);
 
   const updateInventory = useCallback(async (id, updates) => {
     try {
@@ -455,19 +492,21 @@ export function AppProvider({ children }) {
   const unreadNotifCount = notifList.filter(n => !n.read).length;
 
   // ── Selectors ─────────────────────────────────────────────────────────────
-  const getClientProducts = useCallback((cid) =>
-    productList.filter(p => p.restaurantId === (cid || activeClientId) || p.clientId === (cid || activeClientId)),
-    [productList, activeClientId]);
+  const getClientProducts = useCallback((cid) => {
+    const targetId = refId(cid || activeClientId);
+    return productList.filter(p => refId(p.restaurantId) === targetId || refId(p.clientId) === targetId);
+  }, [productList, activeClientId]);
 
-  const getClientBranches = useCallback((cid) =>
-    branchList.filter(b => b.restaurantId === (cid || activeClientId) || b.clientId === (cid || activeClientId)),
-    [branchList, activeClientId]);
+  const getClientBranches = useCallback((cid) => {
+    const targetId = refId(cid || activeClientId);
+    return branchList.filter(b => refId(b.restaurantId) === targetId || refId(b.clientId) === targetId);
+  }, [branchList, activeClientId]);
 
   const getAccessibleBranches = useCallback(() => {
     if (!currentUser) return [];
     if (currentUser.role === ROLES.SUPER_ADMIN || currentUser.role === "superadmin") return branchList;
     if (currentUser.role === ROLES.CLIENT_ADMIN || currentUser.role === "client_admin")
-      return branchList.filter(b => b.restaurantId === currentUser.restaurantId || b.clientId === currentUser.restaurantId);
+      return branchList.filter(b => refId(b.restaurantId) === refId(currentUser.restaurantId));
     return branchList.filter(b =>
       (currentUser.branchIds || []).includes(b.id) ||
       (currentUser.branchIds || []).includes(b._id)
@@ -557,10 +596,10 @@ export function AppProvider({ children }) {
     addCategory, updateCategory, deleteCategory,
 
     // Branches
-    updateBranch, addBranch,
+    updateBranch, addBranch, addBranchArea, removeBranchArea,
 
     // Staff
-    addStaff, updateStaff, removeStaff,
+    addStaff, updateStaff, removeStaff, updateStaffPermissions,
 
     // Inventory
     updateInventory, addInventory,

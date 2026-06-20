@@ -3,10 +3,10 @@ import Product from "../../Models/Product.js";
 import Category from "../../Models/Category.js";
 import Branch from "../../Models/Branch.js";
 
-// Helper: get branchId from token or query
+// Prefer explicit branchId from query/body so owners can switch branches in the UI
 const getCtx = (user, query = {}) => ({
   restaurantId: user.restaurantId || query.restaurantId,
-  branchId:     user.branchId     || query.branchId,
+  branchId:     query.branchId || user.branchId,
 });
 
 /**

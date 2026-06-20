@@ -1,7 +1,60 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import bcryptjs from "bcryptjs";
 import StaffUser from "../../Models/StaffUser.js";
+import Restaurant from "../../Models/Restaurant.js";
 import { sendEmail } from "../../Services/emailService.js";
+
+const bcrypt = bcryptjs.default ?? bcryptjs;
+
+const resolveActiveBranchId = (staff) => {
+  if (staff.accountType === "staff" && staff.parentBranchId) {
+    return staff.parentBranchId?._id || staff.parentBranchId;
+  }
+  if (staff.branchIds?.length) {
+    const first = staff.branchIds[0];
+    return first?._id || first;
+  }
+  return null;
+};
+
+const buildAuthResponse = (staff) => {
+  const activeBranchId = resolveActiveBranchId(staff);
+  const branchIds = (staff.branchIds || []).map((b) => b?._id || b);
+
+  const tokenPayload = {
+    id: staff._id,
+    role: staff.role,
+    accountType: staff.accountType,
+    restaurantId: staff.restaurantId?._id || staff.restaurantId,
+    branchId: activeBranchId,
+    branchIds,
+    permissions: staff.permissions || [],
+  };
+
+  const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
+  });
+
+  return {
+    success: true,
+    message: "Login successful.",
+    token,
+    user: {
+      id: staff._id,
+      name: staff.name,
+      email: staff.email,
+      role: staff.role,
+      accountType: staff.accountType,
+      restaurantId: staff.restaurantId?._id || staff.restaurantId,
+      branchId: activeBranchId,
+      branchIds,
+      permissions: staff.permissions || [],
+      avatar: staff.avatar,
+      color: staff.color,
+    },
+  };
+};
 
 /** POST /api/admin/login */
 export const adminLogin = async (req, res) => {
@@ -10,62 +63,53 @@ export const adminLogin = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ success: false, message: "Email and password required." });
 
-    const staff = await StaffUser.findOne({ email: email.toLowerCase() }).select("+password");
-    if (!staff)
-      return res.status(404).json({ success: false, message: "No account found with this email." });
+    const normalizedEmail = email.toLowerCase().trim();
+    let staff = await StaffUser.findOne({ email: normalizedEmail }).select("+password");
 
-    if (staff.status === "blocked")
-      return res.status(403).json({ success: false, message: "Account blocked. Contact your admin." });
+    if (staff) {
+      if (staff.status === "blocked")
+        return res.status(403).json({ success: false, message: "Account blocked. Contact your admin." });
 
-    const valid = await staff.comparePassword(password);
-    if (!valid)
-      return res.status(400).json({ success: false, message: "Invalid credentials." });
-
-    // Update last login — use updateOne (not save()) so this never fails
-    // due to legacy/invalid data sitting in unrelated fields on this document
-    // (e.g. a stale status value from before this schema existed).
-    await StaffUser.updateOne({ _id: staff._id }, { $set: { lastLogin: new Date() } });
-
-    // Resolve the effective branchId
-    let activeBranchId = null;
-    if (staff.accountType === "staff" && staff.parentBranchId) {
-      activeBranchId = staff.parentBranchId;
-    } else if (staff.branchIds?.length) {
-      activeBranchId = staff.branchIds[0];
+      const valid = await staff.comparePassword(password);
+      if (valid) {
+        await StaffUser.updateOne({ _id: staff._id }, { $set: { lastLogin: new Date() } });
+        staff = await StaffUser.findById(staff._id).populate("branchIds", "name city status");
+        return res.status(200).json(buildAuthResponse(staff));
+      }
     }
 
-    const tokenPayload = {
-      id:           staff._id,
-      role:         staff.role,
-      accountType:  staff.accountType,
-      restaurantId: staff.restaurantId,
-      branchId:     activeBranchId,
-      branchIds:    staff.branchIds,
-      permissions:  staff.permissions,
-    };
+    // Fallback: credentials set by super admin on the restaurant record
+    const restaurant = await Restaurant.findOne({ adminEmail: normalizedEmail }).select("+adminPassword");
+    if (!restaurant?.adminPassword)
+      return res.status(400).json({ success: false, message: "Invalid credentials." });
 
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || "30d",
-    });
+    const restaurantValid = await bcrypt.compare(password, restaurant.adminPassword);
+    if (!restaurantValid)
+      return res.status(400).json({ success: false, message: "Invalid credentials." });
 
-    return res.status(200).json({
-      success: true,
-      message: "Login successful.",
-      token,
-      user: {
-        id:           staff._id,
-        name:         staff.name,
-        email:        staff.email,
-        role:         staff.role,
-        accountType:  staff.accountType,
-        restaurantId: staff.restaurantId,
-        branchId:     activeBranchId,
-        branchIds:    staff.branchIds,
-        permissions:  staff.permissions,
-        avatar:       staff.avatar,
-        color:        staff.color,
-      },
-    });
+    if (!staff) {
+      staff = await StaffUser.create({
+        name: restaurant.ownerName || "Restaurant Owner",
+        email: normalizedEmail,
+        password: "temp-sync",
+        role: "client_admin",
+        accountType: "client_admin",
+        restaurantId: restaurant._id,
+        phone: restaurant.contactNumber || "",
+        avatar: (restaurant.ownerName || "RO").slice(0, 2).toUpperCase(),
+        status: "active",
+        branchIds: [],
+      });
+    }
+
+    // Keep staff password in sync with restaurant admin credentials
+    await StaffUser.collection.updateOne(
+      { _id: staff._id },
+      { $set: { password: restaurant.adminPassword, lastLogin: new Date() } },
+    );
+
+    staff = await StaffUser.findById(staff._id).populate("branchIds", "name city status");
+    return res.status(200).json(buildAuthResponse(staff));
   } catch (err) {
     console.error("adminLogin error:", err);
     return res.status(500).json({ success: false, message: "Server error.", error: err.message });
@@ -77,12 +121,11 @@ export const adminForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const staff = await StaffUser.findOne({ email: email?.toLowerCase() });
-    // Always return 200 to avoid email enumeration
     if (!staff) return res.status(200).json({ success: true, message: "If account exists, reset email sent." });
 
     const token = crypto.randomBytes(32).toString("hex");
     staff.resetToken       = token;
-    staff.resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    staff.resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
     await staff.save();
 
     const resetUrl = `${process.env.FRONTEND_URL}/admin/reset-password?token=${token}`;
@@ -119,7 +162,7 @@ export const adminResetPassword = async (req, res) => {
     if (!staff)
       return res.status(400).json({ success: false, message: "Invalid or expired reset link." });
 
-    staff.password         = password; // pre-save hook will hash it
+    staff.password         = password;
     staff.resetToken       = null;
     staff.resetTokenExpiry = null;
     await staff.save();
@@ -138,7 +181,13 @@ export const getMe = async (req, res) => {
       .populate("branchIds", "name city status");
 
     if (!staff) return res.status(404).json({ success: false, message: "Staff not found." });
-    return res.status(200).json({ success: true, data: staff });
+
+    const activeBranchId = resolveActiveBranchId(staff);
+    const payload = staff.toObject();
+    payload.branchId = activeBranchId;
+    payload.branchIds = (payload.branchIds || []).map((b) => b?._id || b);
+
+    return res.status(200).json({ success: true, data: payload });
   } catch (err) {
     return res.status(500).json({ success: false, message: "Server error." });
   }

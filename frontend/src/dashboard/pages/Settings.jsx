@@ -17,8 +17,10 @@ const NAV = [
 ];
 
 export default function Settings() {
-  const { currentUser, updateStaff, addToast, toggleTheme, theme, branchList, getClientBranches } = useApp();
+  const { currentUser, updateStaff, addToast, toggleTheme, theme, branchList, getClientBranches, activeBranchId, addBranchArea, removeBranchArea } = useApp();
   const branches = getClientBranches();
+  const activeBranch = branches.find(b => b.id === activeBranchId || b._id === activeBranchId) || branches[0];
+  const [newAreaName, setNewAreaName] = useState('');
   const [section, setSection] = useState('profile');
   const [notifEmail,  setNotifEmail ] = useState(true);
   const [notifSms,    setNotifSms   ] = useState(false);
@@ -36,11 +38,6 @@ export default function Settings() {
   const [currency,    setCurrency   ] = useState('PKR');
   const [profile, setProfile] = useState({ name:currentUser?.name||'', email:currentUser?.email||'', phone:'+92 300 1234567', city:'Karachi', cuisine:'Fast Food' });
   const [paymentMethods, setPaymentMethods] = useState({ cod:true, card:true, jazzcash:true, easypaisa:false, online:false, pos_cash:true });
-  const [deliveryZones, setDeliveryZones] = useState([
-    { id:'z1', name:'Zone A — City Center', minOrder:500, fee:100, radius:'5 km', active:true },
-    { id:'z2', name:'Zone B — Suburbs', minOrder:800, fee:200, radius:'10 km', active:true },
-    { id:'z3', name:'Zone C — Extended', minOrder:1200, fee:300, radius:'15 km', active:false },
-  ]);
 
   const saveProfile = () => { if (currentUser) { updateStaff(currentUser.id, { name:profile.name, email:profile.email }); } };
   const togglePayment = (k) => setPaymentMethods(m=>({...m,[k]:!m[k]}));
@@ -305,24 +302,60 @@ export default function Settings() {
 
         {section==='delivery' && (
           <div className="card">
-            <SectionHeader title="Delivery Zones" sub="Manage delivery areas, fees, and minimum orders"/>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {deliveryZones.map(z=>(
-                <div key={z.id} style={{ display:'flex', alignItems:'center', gap:16, padding:'14px 16px', background:'var(--elevated)', borderRadius:'var(--r)', border:`1px solid ${z.active?'var(--border)':'var(--border-l)'}`, opacity:z.active?1:.6 }}>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontWeight:700, fontSize:13 }}>{z.name}</div>
-                    <div style={{ fontSize:11, color:'var(--text-m)', marginTop:2 }}>Min Order: PKR {z.minOrder} · Fee: PKR {z.fee} · Radius: {z.radius}</div>
-                  </div>
-                  <span className={`badge badge-${z.active?'green':'gray'}`}>{z.active?'Active':'Inactive'}</span>
-                  <label className="toggle">
-                    <input type="checkbox" checked={z.active} onChange={e=>setDeliveryZones(zones=>zones.map(dz=>dz.id===z.id?{...dz,active:e.target.checked}:dz))}/>
-                    <span className="toggle-slider"/>
-                  </label>
-                  <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={()=>addToast(`Editing ${z.name}...`,'info')}>Edit</button>
+            <SectionHeader title="Delivery Zones" sub="Manage delivery areas/towns for the active branch"/>
+            {!activeBranch ? (
+              <div style={{ fontSize:12, color:'var(--text-m)', padding:12 }}>No branch selected. Add a branch first from the Branches page.</div>
+            ) : (
+              <>
+                <div style={{ fontSize:12, color:'var(--text-m)', marginBottom:12 }}>
+                  Branch: <strong>{activeBranch.name}</strong> · {activeBranch.city}
                 </div>
-              ))}
-            </div>
-            <button className="btn btn-primary" style={{ marginTop:16 }} onClick={()=>addToast('Delivery zones saved!','success')}>Save Zones</button>
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {(activeBranch.areas || []).map(area => (
+                    <div key={area} style={{ display:'flex', alignItems:'center', gap:16, padding:'14px 16px', background:'var(--elevated)', borderRadius:'var(--r)', border:'1px solid var(--border)' }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:700, fontSize:13 }}>{area}</div>
+                        <div style={{ fontSize:11, color:'var(--text-m)', marginTop:2 }}>
+                          Min Order: PKR {activeBranch.minOrderAmt || 0} · Fee: PKR {activeBranch.deliveryFee || 0}
+                        </div>
+                      </div>
+                      <span className="badge badge-green">Active</span>
+                      <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={() => removeBranchArea(activeBranch.id, area)}>Remove</button>
+                    </div>
+                  ))}
+                  {(activeBranch.areas || []).length === 0 && (
+                    <div style={{ fontSize:12, color:'var(--text-m)', padding:12, background:'var(--elevated)', borderRadius:'var(--r)' }}>
+                      No delivery areas yet. Add towns/areas below.
+                    </div>
+                  )}
+                </div>
+                <div style={{ display:'flex', gap:10, marginTop:16 }}>
+                  <input
+                    className="input"
+                    style={{ flex:1 }}
+                    placeholder="Add town or area name"
+                    value={newAreaName}
+                    onChange={e => setNewAreaName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newAreaName.trim()) {
+                        addBranchArea(activeBranch.id, newAreaName.trim());
+                        setNewAreaName('');
+                      }
+                    }}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (!newAreaName.trim()) return;
+                      addBranchArea(activeBranch.id, newAreaName.trim());
+                      setNewAreaName('');
+                    }}
+                  >
+                    Add Area
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

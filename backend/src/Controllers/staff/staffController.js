@@ -2,6 +2,30 @@ import StaffUser from "../../Models/StaffUser.js";
 import { sendEmail } from "../../Services/emailService.js";
 import crypto from "crypto";
 
+const ROLE_DEFAULT_PERMISSIONS = {
+  branch_manager: [
+    "orders.view", "orders.create", "orders.accept", "orders.reject", "orders.advance",
+    "products.view", "products.create", "products.edit", "products.toggle",
+    "categories.view", "branches.view",
+    "staff.view", "staff.create", "staff.edit",
+    "inventory.view", "inventory.create", "inventory.edit", "inventory.restock",
+    "analytics.view", "reports.view",
+    "counter.view", "counter.accept", "counter.reject", "counter.call_log",
+    "kitchen.view", "kitchen.advance", "pos.view", "pos.sync",
+  ],
+  counter: [
+    "orders.view", "orders.create", "orders.accept", "orders.reject",
+    "counter.view", "counter.accept", "counter.reject", "counter.call_log", "pos.view",
+  ],
+  editor: [
+    "products.view", "products.create", "products.edit", "products.toggle",
+    "categories.view", "categories.create", "categories.edit",
+    "inventory.view", "inventory.edit",
+  ],
+  viewer: ["orders.view", "analytics.view", "reports.view"],
+  kitchen: ["orders.view", "kitchen.view", "kitchen.advance"],
+};
+
 /**
  * GET /api/admin/staff
  * client_admin: see all staff under their restaurantId
@@ -16,6 +40,7 @@ export const getStaff = async (req, res) => {
       if (req.query.restaurantId) filter.restaurantId = req.query.restaurantId;
     } else if (role === "client_admin") {
       filter.restaurantId = restaurantId;
+      filter.accountType = "staff";
     } else {
       filter.parentBranchId = branchId;
     }
@@ -50,6 +75,11 @@ export const createStaff = async (req, res) => {
     // Generate a temporary password
     const tempPassword = crypto.randomBytes(6).toString("hex");
 
+    const resolvedPermissions =
+      permissions?.length > 0
+        ? permissions
+        : ROLE_DEFAULT_PERMISSIONS[role] || [];
+
     const staff = await StaffUser.create({
       name,
       email: email.toLowerCase(),
@@ -59,7 +89,7 @@ export const createStaff = async (req, res) => {
       restaurantId: restaurantId || req.body.restaurantId,
       branchIds: branchIds || (branchId ? [branchId] : []),
       parentBranchId: branchId || null,
-      permissions: permissions || [],
+      permissions: resolvedPermissions,
       phone: phone || "",
       color: req.body.color || "#6366f1",
     });

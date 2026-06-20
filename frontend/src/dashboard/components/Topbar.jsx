@@ -56,7 +56,7 @@ export default function Topbar() {
     setShowNotifs(false);
   };
 
-  const selectedBranch = branches.find(b => b.id === activeBranchId);
+  const selectedBranch = branches.find(b => String(b.id) === String(activeBranchId));
 
   return (
     <header className="topbar">

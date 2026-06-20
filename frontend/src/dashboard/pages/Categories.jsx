@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { SectionHeader, Modal } from '../components/ui';
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const COLOR_OPTIONS = ['#f97316','#eab308','#3b82f6','#ec4899','#22c55e','#a855f7','#ef4444','#06b6d4','#f59e0b','#10b981'];
 
 function BannerUploader({ value, onChange }) {

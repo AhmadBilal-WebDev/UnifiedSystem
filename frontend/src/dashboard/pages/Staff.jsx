@@ -4,7 +4,7 @@ import { SectionHeader, Modal } from '../components/ui';
 import { ROLES, ROLE_LABELS, ROLE_COLORS, PERMISSIONS, ACTION_LABELS, ACTION_GROUPS } from '../data/mockData';
 
 export default function Staff() {
-  const { userList, addStaff, removeStaff, updateStaff, currentUser, getAccessibleBranches } = useApp();
+  const { userList, addStaff, removeStaff, updateStaff, updateStaffPermissions, currentUser, getAccessibleBranches } = useApp();
   const branches = getAccessibleBranches();
   const [showModal, setShowModal] = useState(false);
   const [showPermModal, setShowPermModal] = useState(null); // userId to view perms
@@ -31,10 +31,14 @@ export default function Staff() {
   };
   const handleSave = () => {
     if (!form.name || !form.email) return;
+    const rolePerms = PERMISSIONS[form.role]?.actions?.filter(a => a !== '*') || [];
     const data = {
-      ...form,
-      avatar: form.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2),
-      color: '#3b8ef8', clientId: currentUser?.clientId, password: 'temp123',
+      name: form.name,
+      email: form.email,
+      role: form.role,
+      branchIds: form.branchIds,
+      phone: form.phone || '',
+      permissions: rolePerms,
     };
     if (editUser) { updateStaff(editUser.id, data); }
     else          { addStaff(data); }
@@ -44,12 +48,19 @@ export default function Staff() {
     ...f, branchIds: f.branchIds.includes(bId) ? f.branchIds.filter(x => x !== bId) : [...f.branchIds, bId],
   }));
 
+  const saveCustomPermissions = (userId, selectedActions) => {
+    updateStaffPermissions(userId, selectedActions);
+    setShowPermModal(null);
+  };
+
   const statusDot = { online:'var(--green)', away:'var(--yellow)', offline:'var(--text-m)' };
 
   // For the permission detail panel
   const permUser = showPermModal ? userList.find(u => u.id === showPermModal) : null;
   const permData = permUser ? PERMISSIONS[permUser.role] : null;
-  const roleActions = permData?.actions?.includes('*') ? Object.keys(ACTION_LABELS) : (permData?.actions || []);
+  const roleActions = permUser?.permissions?.length
+    ? permUser.permissions
+    : (permData?.actions?.includes('*') ? Object.keys(ACTION_LABELS) : (permData?.actions || []));
   const rolePages   = permData?.pages?.includes('*') ? ['all'] : (permData?.pages || []);
 
   return (
@@ -184,6 +195,15 @@ export default function Staff() {
           </div>
           <div style={{ display:'flex', gap:10, marginTop:4 }}>
             <button className="btn btn-primary" style={{ flex:1, justifyContent:'center' }} onClick={() => { openEdit(permUser); setShowPermModal(null); }}>Edit Role</button>
+            {currentUser?.role === ROLES.CLIENT_ADMIN && permUser?.role !== ROLES.CLIENT_ADMIN && (
+              <button
+                className="btn btn-ghost"
+                style={{ flex:1, justifyContent:'center' }}
+                onClick={() => saveCustomPermissions(permUser.id, roleActions)}
+              >
+                Save Permissions
+              </button>
+            )}
             <button className="btn btn-ghost" onClick={() => setShowPermModal(null)}>Close</button>
           </div>
         </Modal>
