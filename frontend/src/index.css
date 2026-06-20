@@ -1,0 +1,93 @@
+@import "tailwindcss";
+:root {
+      /* * Header/Footer/SticyHeader colors codes */
+
+--primary-bg  : #f16a3d;
+  --secondary-bg: #fdc808;
+  --accent-white: #ffffff;
+  --accent-black: #000000;
+--border-line: rgba(255, 255, 255, 0.35); 
+
+  /* * Banner colors codes */
+  --banner-tag-color: #f16a3d;
+  --banner-line-color: #f16a3d;
+  --banner-title-color: #fff;
+  --banner-btn-bg-color: #f16a3d;
+  --banner-btn-color: #fff;
+  --banner-btn-hover-color: #000;
+  --banner-btn-hover-bg-color: yellow;
+
+  /* * Exploer The Menu */
+  --explore-bg-color: #f16a3d;
+  --explore-tag-color: #f16a3d;
+  --container-bg-color: #f16a3d;
+
+  /* * Container Carts */
+  --container-title-bg-color: #fff;
+  --container-tag-bg-color: yellow;
+  --container-btn-bg-color: white;
+  --container-btn-color: black;
+
+   /* * Login/Signup Colors */
+  --Authentication-bg-color: #fdc808;
+
+  /* * All Carts Colors */
+  --carts-bg-color: #f16a3d;
+  --carts-bg-sticy-color: #fdc808;
+--carts-bg-scrol-color: linear-gradient(to right, #ea580c, #ca8a04);
+  --carts-title-color: #fff;
+  --carts-description-color: #fff;
+  --carts-price-color: #fff;
+  --carts-tag-bg-color: #fff;
+  --carts-tag-color: #000;
+  --carts-btns-bg-color: #fff;
+  --carts-btns-hover-bg-color: #fff;
+  --carts-btns-hover-bg-color:#fdc808;
+    /* * limited Button Colors */
+
+--limited-edition-bg-from: #F9E299;
+  --limited-edition-bg-via: #D2A13B;
+  --limited-edition-bg-to: #9B6F1C;
+  --limited-edition-text-color: #483420;
+  
+
+      /* * ProfileMenu Page Colors */
+
+ --profilemenu-bg-color: #f3e3dc;
+  --profilemenu-card-bg: #ffffff;
+  --profilemenu-primary: #f16a3d;     
+  --profilemenu-secondary: #fdc808;   
+  --profilemenu-input-bg: #f3f4f6;
+  --profilemenu-text-main: #111827;
+  --profilemenu-text-muted: #6b7280;
+  --profilemenu-btn-text: #ffffff;
+
+     /* * Profile Page/text/button Colors */
+
+ --profile-bg-color: #f3e3dc;
+  --profile-card-bg: #ffffff;
+  --profile-primary: #f16a3d;     
+  --profile-secondary: #fdc808;   
+  --profile-input-bg: rgb(241, 242, 246);
+  --profile-text-main: #111827;
+  --profile-text-muted: #6b7280;
+  --profile-btn-text: #ffffff;
+  --profile-btn-bg: #111827;
+
+  --bg-sidebar: #ffffff;           /* Pure White Sidebar Background */
+  --bg-header: #ffffff;            /* Pure White Header Background */
+
+  /* 🔵 Theme Brand Colors (Buttons & Active States) */
+  --primary-blue: #1e40af;         /* Professional Dark Blue Button */
+  --primary-blue-hover: #2563eb;   /* Hover Blue State */
+
+  /* 📝 Typography (Text Colors) */
+  --text-main: #0f172a;            /* Dark Slate Text (Headings, Active Tabs) */
+  --text-muted: #64748b;           /* Soft Gray Text (Inactive Tabs, Subtitles) */
+
+  /* 🧱 Layout Dividers */
+  --border-color: #e8ecf0;
+
+}
+
+ 
