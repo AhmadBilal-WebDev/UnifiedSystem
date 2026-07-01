@@ -3,6 +3,18 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
 export const fmt = (v) => `PKR ${(v||0).toLocaleString('en-PK')}`;
 
+/** Customer-facing order label — never show raw MongoDB ids in the UI */
+export const orderCustomerName = (order) =>
+  order?.customerName?.trim() || order?.customerPhone || 'Walk-in Customer';
+
+export const orderSubtitle = (order) => {
+  const time = order?.createdAt
+    ? new Date(order.createdAt).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
+    : '';
+  const count = order?.items?.length || 0;
+  return [time, `${count} item${count === 1 ? '' : 's'}`].filter(Boolean).join(' · ');
+};
+
 export const STATUS_STYLE = {
   pending:   { label:'Pending',   color:'var(--yellow)', bg:'rgba(234,179,8,.15)' },
   confirmed: { label:'Confirmed', color:'var(--blue)',   bg:'rgba(59,142,248,.15)' },
@@ -78,8 +90,8 @@ export function LiveDot({ color = 'var(--green)', size = 8 }) {
 
 export function Modal({ title, onClose, children, maxWidth = 520 }) {
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }} onClick={onClose}>
-      <div style={{ background:'var(--bg-2)', border:'1px solid var(--border-l)', borderRadius:'var(--rxl)', padding:24, width:'100%', maxWidth, maxHeight:'90vh', overflowY:'auto' }} className="fade-in" onClick={e=>e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content fade-in" style={{ maxWidth }} onClick={e=>e.stopPropagation()}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
           <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:16 }}>{title}</div>
           <button onClick={onClose} style={{ width:30, height:30, borderRadius:'var(--r)', background:'var(--elevated)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-m)' }}>

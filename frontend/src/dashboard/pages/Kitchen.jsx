@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { SectionHeader, LiveDot } from '../components/ui';
+import { SectionHeader, LiveDot, orderCustomerName, orderSubtitle } from '../components/ui';
 import { SOURCE_LABELS } from '../data/mockData';
 
 const KITCHEN_STATUSES = ['confirmed', 'preparing', 'ready'];
@@ -34,7 +34,7 @@ export default function Kitchen() {
   };
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20, height:'100%' }}>
+    <div className="page-content" style={{ height:'100%' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Kitchen Display</h2>
@@ -59,7 +59,7 @@ export default function Kitchen() {
           <div style={{ fontSize:13, color:'var(--text-m)' }}>No active orders in the kitchen.</div>
         </div>
       ) : (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, alignItems:'start' }}>
+        <div className="grid-3">
           {KITCHEN_STATUSES.map(status => {
             const statusOrders = kitchenOrders.filter(o => o.status === status && (filter === 'all' || filter === status));
             const cfg = STATUS_CONFIG[status];
@@ -77,7 +77,8 @@ export default function Kitchen() {
                       <div key={o.id} style={{ background:isLate?'var(--red-soft)':cfg.bg, border:`1px solid ${isLate?'rgba(245,61,92,.44)':cfg.color+'33'}`, borderRadius:'var(--r)', padding:14 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 }}>
                           <div>
-                            <div style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:800, fontSize:14, color:cfg.color }}>{o.id}</div>
+                            <div style={{ fontWeight:800, fontSize:14, color:cfg.color }}>{orderCustomerName(o)}</div>
+                            <div style={{ fontSize:10, color:'var(--text-m)', marginTop:2 }}>{orderSubtitle(o)}</div>
                             <div style={{ fontSize:11, color:'var(--text-m)', marginTop:2 }}>{SOURCE_LABELS[o.source]||o.source} · {o.customerName}</div>
                             {o.tableNo && <div style={{ fontSize:11, fontWeight:700, marginTop:2 }}>Table {o.tableNo}</div>}
                           </div>

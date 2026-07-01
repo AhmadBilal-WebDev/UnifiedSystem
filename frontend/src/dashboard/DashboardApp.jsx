@@ -20,7 +20,7 @@ import Settings   from './pages/Settings';
 import POSIntegration from './pages/POSIntegration';
 
 function DashboardContent() {
-  const { currentUser, activeNav, theme } = useApp();
+  const { currentUser, activeNav, theme, mobileMenuOpen, closeMobileMenu } = useApp();
   if (!currentUser) return <div className="dashboard-shell" data-theme={theme}><Login /></div>;
 
   const pages = {
@@ -40,14 +40,18 @@ function DashboardContent() {
   };
 
   return (
-    <div className="dashboard-shell" data-theme={theme} style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
-      <Sidebar />
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <Topbar />
-        <main style={{ flex:1, overflowY:'auto', overflowX:'hidden', background:'var(--bg-base)' }}
-          className="fade-up" key={activeNav}>
-          {pages[activeNav] || <Dashboard />}
-        </main>
+    <div className="dashboard-shell" data-theme={theme}>
+      {mobileMenuOpen && (
+        <div className="sidebar-overlay" onClick={closeMobileMenu} aria-hidden="true" />
+      )}
+      <div className="dashboard-layout">
+        <Sidebar />
+        <div className="dashboard-main">
+          <Topbar />
+          <main className="dashboard-content fade-up" key={activeNav}>
+            {pages[activeNav] || <Dashboard />}
+          </main>
+        </div>
       </div>
       <Toast />
     </div>

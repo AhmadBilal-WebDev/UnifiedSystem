@@ -119,6 +119,7 @@ export const staff = {
   create:           (body)   => post("/admin/staff", body),
   update:           (id, body) => put(`/admin/staff/${id}`, body),
   updatePermissions:(id, permissions) => patch(`/admin/staff/${id}/permissions`, { permissions }),
+  resetPassword:    (id, password)     => patch(`/admin/staff/${id}/reset-password`, password ? { password } : {}),
   toggleStatus:     (id)     => patch(`/admin/staff/${id}/toggle-status`, {}),
   delete:           (id)     => del(`/admin/staff/${id}`),
 };

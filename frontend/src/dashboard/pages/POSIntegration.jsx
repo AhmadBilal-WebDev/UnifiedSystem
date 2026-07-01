@@ -59,7 +59,7 @@ export default function POSIntegration() {
   };
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>POS Integration</h2>
@@ -72,7 +72,7 @@ export default function POSIntegration() {
       </div>
 
       {/* Branch Status Grid */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
+      <div className="grid-auto">
         {branches.map(b => (
           <div key={b.id} onClick={() => setSelectedBranch(b.posEnabled ? b.id : selectedBranch)}
             className="card fade-up"
@@ -94,7 +94,7 @@ export default function POSIntegration() {
             {b.posEnabled ? (
               <>
                 <div style={{ fontSize:11, color:'var(--text-m)', marginBottom:8 }}>{b.posSystem}</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                <div className="grid-form-2" style={{ gap:8 }}>
                   {[
                     { l:'Last Sync', v: getTimeSince(b.posLastSync) },
                     { l:'System', v: b.posSystem || '—' },
@@ -114,7 +114,7 @@ export default function POSIntegration() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+      <div className="grid-4">
         {[
           { l:'Today POS Orders', v: todayPOS.length, color:'var(--accent)', sub:'From POS terminals' },
           { l:'Today POS Revenue', v: fmt(todayRevenue), color:'var(--green)', sub:'Synced to dashboard' },
@@ -193,14 +193,16 @@ export default function POSIntegration() {
           </div>
           <table className="table">
             <thead>
-              <tr><th>Order ID</th><th>Branch</th><th>Customer</th><th>Table</th><th>Payment</th><th>Total</th><th>Time</th><th>Status</th></tr>
+              <tr><th>Customer</th><th>Branch</th><th>Table</th><th>Payment</th><th>Total</th><th>Time</th><th>Status</th></tr>
             </thead>
             <tbody>
               {posTrans.slice(0,30).map(t => (
                 <tr key={t.id}>
-                  <td><span style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:11, color:'var(--accent)' }}>{String(t.id).slice(-8)}</span></td>
+                  <td>
+                    <div style={{ fontWeight:600 }}>{t.customerName || 'Walk-in Customer'}</div>
+                    <div style={{ fontSize:10, color:'var(--text-m)' }}>{new Date(t.createdAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</div>
+                  </td>
                   <td style={{ fontSize:12 }}>{branchList.find(b=>b.id===t.branchId || b._id===t.branchId)?.name || (t.branchId?.name || '—')}</td>
-                  <td style={{ fontWeight:600 }}>{t.customerName || 'Walk-in Customer'}</td>
                   <td>{t.tableNo ? `T-${t.tableNo}` : '—'}</td>
                   <td><span className="badge badge-gray" style={{ textTransform:'capitalize' }}>{t.paymentMethod}</span></td>
                   <td style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:12 }}>{fmt(t.total)}</td>
@@ -220,14 +222,16 @@ export default function POSIntegration() {
           </div>
           <table className="table">
             <thead>
-              <tr><th>Order ID</th><th>Branch</th><th>Customer</th><th>Table</th><th>Items</th><th>Total</th><th>Status</th><th>Time</th></tr>
+              <tr><th>Customer</th><th>Branch</th><th>Table</th><th>Items</th><th>Total</th><th>Status</th><th>Time</th></tr>
             </thead>
             <tbody>
               {posOrders.slice(0,30).map(o => (
                 <tr key={o.id}>
-                  <td><span style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:11, color:'var(--accent)' }}>{o.id}</span></td>
-                  <td style={{ fontSize:12 }}>{branchList.find(b=>b.id===o.branchId)?.name || o.branchId}</td>
-                  <td style={{ fontWeight:600 }}>{o.customerName}</td>
+                  <td>
+                    <div style={{ fontWeight:600 }}>{o.customerName || 'Walk-in Customer'}</div>
+                    <div style={{ fontSize:10, color:'var(--text-m)' }}>{new Date(o.createdAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</div>
+                  </td>
+                  <td style={{ fontSize:12 }}>{branchList.find(b=>b.id===o.branchId)?.name || '—'}</td>
                   <td>{o.tableNo ? `T-${o.tableNo}` : '—'}</td>
                   <td>{o.items?.length || 0}</td>
                   <td style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:12 }}>{fmt(o.total)}</td>
@@ -255,7 +259,7 @@ export default function POSIntegration() {
               <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Customer Name</div>
               <input className="input" value={syncForm.customerName} onChange={e=>setSyncForm(f=>({...f,customerName:e.target.value}))} placeholder="Walk-in Customer"/>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div className="grid-form-2">
               <div>
                 <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Table Number</div>
                 <input className="input" type="number" value={syncForm.tableNo} onChange={e=>setSyncForm(f=>({...f,tableNo:e.target.value}))} placeholder="e.g. 5"/>

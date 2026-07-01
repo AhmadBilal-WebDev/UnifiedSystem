@@ -43,8 +43,8 @@ export default function Settings() {
   const togglePayment = (k) => setPaymentMethods(m=>({...m,[k]:!m[k]}));
 
   return (
-    <div style={{ padding:24, display:'flex', gap:24 }}>
-      <div style={{ width:190, flexShrink:0 }}>
+    <div className="page-content page-content--row settings-layout">
+      <div className="settings-nav">
         <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:14, marginBottom:12 }}>Settings</div>
         {NAV.map(n=>(
           <button key={n.id} onClick={()=>setSection(n.id)}
@@ -54,7 +54,7 @@ export default function Settings() {
         ))}
       </div>
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', gap:16, minWidth:0 }}>
+      <div className="settings-body">
 
         {section==='profile' && (
           <div className="card">
@@ -115,7 +115,7 @@ export default function Settings() {
               <div><div style={{ fontWeight:600, fontSize:13 }}>Auto-Print Receipts</div><div style={{ fontSize:11, color:'var(--text-m)', marginTop:2 }}>Print automatically on order confirmation</div></div>
               <label className="toggle"><input type="checkbox" checked={autoPrint} onChange={e=>setAutoPrint(e.target.checked)}/><span className="toggle-slider"/></label>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, padding:'16px 0', borderBottom:'1px solid var(--border)' }}>
+            <div className="grid-form-2" style={{ padding:'16px 0', borderBottom:'1px solid var(--border)' }}>
               <div>
                 <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Printer Model</div>
                 <select className="input" value={printerModel} onChange={e=>setPrinterModel(e.target.value)}>

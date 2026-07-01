@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { AreaChart, Area, ComposedChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useApp } from '../contexts/AppContext';
-import { MetricCard, SectionHeader, CustomTooltip, fmt, LiveDot } from '../components/ui';
+import { MetricCard, SectionHeader, CustomTooltip, fmt, LiveDot, orderCustomerName, orderSubtitle } from '../components/ui';
 import { SOURCE_LABELS, SOURCE_COLORS } from '../data/mockData';
 import api from '../services/api';
 
@@ -89,11 +89,11 @@ export default function Dashboard() {
   }), [branches, orderList, userList]);
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:22 }}>
+    <div className="page-content">
 
       {/* Hero Banner */}
       <div className="card fade-up" style={{ background:'linear-gradient(135deg,var(--bg-3) 0%,var(--bg-2) 100%)', border:'1px solid var(--border-l)', padding:'22px 28px', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:0, right:0, width:340, height:'100%', background:'radial-gradient(ellipse at right,var(--accent-soft),transparent 70%)', pointerEvents:'none' }}/>
+        <div className="card-hero-gradient"/>
         <div style={{ display:'flex', alignItems:'center', gap:16, flexWrap:'wrap', position:'relative' }}>
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:20, fontWeight:800, letterSpacing:'-.02em' }}>
@@ -135,7 +135,7 @@ export default function Dashboard() {
       </div>
 
       {/* Revenue Chart + Source Mix */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 300px', gap:16 }}>
+      <div className="grid-dashboard">
         <div className="card fade-up" style={{ animationDelay:'200ms' }}>
           <SectionHeader title={`Revenue — 30 Days${activeBranchName ? ` · ${activeBranchName}` : ''}`} sub="Daily trend">
             <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={() => setActiveNav('analytics')}>Full Analytics</button>
@@ -221,10 +221,10 @@ export default function Dashboard() {
                   <span style={{ width:7, height:7, borderRadius:'50%', background:sc, flexShrink:0, boxShadow:`0 0 8px ${sc}` }}/>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                      <span style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:11 }}>{String(o.id).slice(-8)}</span>
+                      <span style={{ fontWeight:700, fontSize:12 }}>{orderCustomerName(o)}</span>
                       <span style={{ fontSize:9, background:'var(--elevated)', color:'var(--text-m)', padding:'1px 6px', borderRadius:99, fontWeight:700, border:'1px solid var(--border)' }}>{SOURCE_LABELS[o.source]||o.source}</span>
                     </div>
-                    <div style={{ fontSize:10, color:'var(--text-m)', marginTop:1 }}>{o.customerName}</div>
+                    <div style={{ fontSize:10, color:'var(--text-m)', marginTop:1 }}>{orderSubtitle(o)}</div>
                   </div>
                   <div style={{ textAlign:'right', flexShrink:0 }}>
                     <div style={{ fontSize:12, fontWeight:700 }}>{fmt(o.total)}</div>
@@ -316,8 +316,7 @@ export default function Dashboard() {
               <div key={o.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'8px 0', borderBottom:'1px solid var(--border)' }}>
                 <span style={{ width:8, height:8, borderRadius:'50%', background:sc, flexShrink:0 }}/>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontWeight:600, fontSize:12 }}>{String(o.id).slice(-8)}</span>
-                  <span style={{ fontSize:12, color:'var(--text-m)', marginLeft:8 }}>{o.customerName}</span>
+                  <span style={{ fontWeight:600, fontSize:12 }}>{orderCustomerName(o)}</span>
                   <span style={{ fontSize:11, color:'var(--text-m)', marginLeft:8 }}>via {SOURCE_LABELS[o.source]||o.source}</span>
                 </div>
                 <span style={{ fontSize:11, background:`${sc}22`, color:sc, padding:'2px 8px', borderRadius:99, fontWeight:700, textTransform:'capitalize' }}>{o.status}</span>

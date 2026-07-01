@@ -37,7 +37,8 @@ const ICONS = {
 
 export default function Sidebar() {
   const {
-    activeNav, setActiveNav, sidebarCollapsed, setSidebarCollapsed,
+    activeNav, navigateTo, sidebarCollapsed, setSidebarCollapsed,
+    mobileMenuOpen, closeMobileMenu,
     currentUser, orderList, getPendingConfirmOrders, branchList, hasPermission,
   } = useApp();
 
@@ -52,22 +53,27 @@ export default function Sidebar() {
   const clientName = currentUser?.role === 'super_admin' ? 'Agency Admin' : 'BurgerBlast Co.';
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div style={{ height:58, display:'flex', alignItems:'center', justifyContent: collapsed ? 'center' : 'space-between', padding: collapsed ? '0' : '0 14px', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
-        {collapsed ? (
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <div style={{ height:58, display:'flex', alignItems:'center', justifyContent: collapsed && !mobileMenuOpen ? 'center' : 'space-between', padding: collapsed && !mobileMenuOpen ? '0' : '0 14px', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
+        {collapsed && !mobileMenuOpen ? (
           <button onClick={() => setSidebarCollapsed(false)} style={{ width:34, height:34, background:'var(--accent)', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', border:'none', cursor:'pointer', color:'#fff', fontWeight:900, fontSize:13 }}>ROS</button>
         ) : (
           <>
-            <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-              <div style={{ width:32, height:32, background:'var(--accent)', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:900, fontSize:12, letterSpacing:-.5 }}>ROS</div>
-              <div>
+            <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+              <div style={{ width:32, height:32, background:'var(--accent)', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:900, fontSize:12, letterSpacing:-.5, flexShrink:0 }}>ROS</div>
+              <div style={{ minWidth:0 }}>
                 <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:13, letterSpacing:'-.02em', lineHeight:1 }}>RestaurantOS</div>
-                <div style={{ fontSize:9, color:'var(--text-m)', fontWeight:600, marginTop:1 }}>{clientName}</div>
+                <div style={{ fontSize:9, color:'var(--text-m)', fontWeight:600, marginTop:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{clientName}</div>
               </div>
             </div>
-            <button onClick={() => setSidebarCollapsed(true)} style={{ width:24, height:24, background:'none', border:'1px solid var(--border)', borderRadius:'var(--r)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-m)', fontSize:11 }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
-            </button>
+            <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+              <button onClick={() => setSidebarCollapsed(true)} className="hide-mobile" style={{ width:24, height:24, background:'none', border:'1px solid var(--border)', borderRadius:'var(--r)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-m)', fontSize:11 }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+              </button>
+              <button onClick={closeMobileMenu} className="show-mobile-only" style={{ width:28, height:28, background:'none', border:'1px solid var(--border)', borderRadius:'var(--r)', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-m)' }} aria-label="Close menu">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
           </>
         )}
       </div>
@@ -77,7 +83,7 @@ export default function Sidebar() {
           const isActive = activeNav === n.id;
           const badge    = badges[n.id];
           return (
-            <button key={n.id} onClick={() => setActiveNav(n.id)} className={`nav-item ${isActive ? 'active' : ''}`}>
+            <button key={n.id} onClick={() => navigateTo(n.id)} className={`nav-item ${isActive ? 'active' : ''}`}>
               <span style={{ flexShrink:0, opacity: isActive ? 1 : 0.7 }}>{ICONS[n.id] || ICONS.settings}</span>
               {!collapsed && <span>{n.label}</span>}
               {!collapsed && badge > 0 && (

@@ -5,7 +5,7 @@ import {
   HiOutlineOfficeBuilding,
   HiOutlineLocationMarker,
 } from "react-icons/hi";
-import { logImg, locationData, fetchLocationData } from "../../Contants/Config";
+import { logImg, locationData, branchData, fetchLocationData } from "../../Contants/Config";
 
 const LocationModal = ({
   isModalOpen,
@@ -217,7 +217,16 @@ const LocationModal = ({
 
         <button
           onClick={() => {
-            const locationObj = { city: selectedCity, town: selectedTown };
+            const cityBranches = branchData[selectedCity] || [];
+            const matched =
+              cityBranches.find((b) => (b.areas || []).includes(selectedTown)) ||
+              cityBranches[0];
+            const locationObj = {
+              city: selectedCity,
+              town: selectedTown,
+              branchId: matched?._id || "",
+              type: orderType,
+            };
             localStorage.setItem("userLocation", JSON.stringify(locationObj));
             window.dispatchEvent(new Event("locationUpdated"));
             handleCloseModal();

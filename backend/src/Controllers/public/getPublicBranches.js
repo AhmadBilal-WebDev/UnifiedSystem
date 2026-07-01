@@ -32,8 +32,11 @@ const getPublicBranches = async (req, res) => {
 
     const branches = await Branch.find({
       restaurantId: restaurant._id,
-      status: { $in: ["open", "active"] },
-    }).select("name city address areas deliveryFee minOrderAmt deliveryTime openTime closeTime").lean();
+      status: { $nin: ["closed", "maintenance"] },
+    })
+      .select("name city address areas phone deliveryFee minOrderAmt deliveryTime openTime closeTime")
+      .sort({ city: 1, name: 1 })
+      .lean();
 
     // NOTE: the customer website's fetchLocationData() does res.data.forEach(...),
     // so this endpoint must return a plain array, not a wrapped object.
@@ -42,13 +45,14 @@ const getPublicBranches = async (req, res) => {
         _id: b._id,
         branchName: b.name,
         city: b.city,
-        address: b.address,
+        address: b.address || "",
+        phone: b.phone || "",
         areas: b.areas,
         deliveryFee: b.deliveryFee,
         minOrderAmt: b.minOrderAmt,
         deliveryTime: b.deliveryTime,
-        openTime: b.openTime,
-        closeTime: b.closeTime,
+        openTime: b.openTime || "",
+        closeTime: b.closeTime || "",
       }))
     );
   } catch (error) {

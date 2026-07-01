@@ -9,6 +9,47 @@ export const ROLES = {
   KITCHEN:        'kitchen',
 };
 
+export const INVITE_ROLES = [
+  ROLES.BRANCH_MANAGER,
+  ROLES.COUNTER,
+  ROLES.EDITOR,
+  ROLES.VIEWER,
+  ROLES.KITCHEN,
+];
+
+/** Map nav page id → permission prefixes that grant access */
+export const PAGE_PERMISSION_HINTS = {
+  dashboard:  ["analytics.view", "orders.view", "counter.view"],
+  counter:    ["counter."],
+  orders:     ["orders."],
+  kitchen:    ["kitchen."],
+  products:   ["products."],
+  categories: ["categories."],
+  branches:   ["branches."],
+  inventory:  ["inventory."],
+  staff:      ["staff."],
+  analytics:  ["analytics."],
+  reports:    ["reports."],
+  settings:   ["settings."],
+  pos:        ["pos."],
+};
+
+export const getDefaultPermissionsForRole = (role) => {
+  const p = PERMISSIONS[role];
+  if (!p?.actions) return [];
+  if (p.actions.includes("*")) return Object.keys(ACTION_LABELS);
+  return p.actions;
+};
+
+export const getDefaultNavForRole = (role) => {
+  if (role === ROLES.COUNTER || role === "counter") return "counter";
+  if (role === ROLES.KITCHEN || role === "kitchen") return "kitchen";
+  const pages = PERMISSIONS[role]?.pages;
+  if (pages?.includes("*")) return "dashboard";
+  if (pages?.length) return pages[0];
+  return "dashboard";
+};
+
 export const ROLE_LABELS = {
   super_admin:    'Super Admin',
   client_admin:   'Client Admin',

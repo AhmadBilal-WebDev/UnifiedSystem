@@ -1,17 +1,46 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FaFacebookF, FaInstagram, FaXTwitter } from "react-icons/fa6";
-import { title_name, logImg, contactConfig } from "../../Contants/Config";
+import {
+  title_name,
+  logImg,
+  fetchLocationData,
+  getSelectedBranchFromStorage,
+  formatBranchHours,
+} from "../../Contants/Config";
 import { Link, useLocation } from "react-router-dom";
 
 const Footer = () => {
   const [isAtFooter, setIsAtFooter] = useState(false);
+  const [branches, setBranches] = useState([]);
+  const [serviceHours, setServiceHours] = useState({ days: "Monday - Sunday", time: "" });
+  const [loaded, setLoaded] = useState(false);
   const footerRef = useRef(null);
   const location = useLocation();
 
-  const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/signup";
-
   const isLandingPage = location.pathname === "/";
+
+  const loadBranchContacts = useCallback(async () => {
+    const rows = await fetchLocationData();
+    setBranches(rows);
+
+    const selected = getSelectedBranchFromStorage();
+    const hoursBranch = selected || rows[0];
+    if (hoursBranch) {
+      setServiceHours({
+        days: "Monday - Sunday",
+        time: formatBranchHours(hoursBranch.openTime, hoursBranch.closeTime) || "—",
+      });
+    } else {
+      setServiceHours({ days: "Monday - Sunday", time: "" });
+    }
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    loadBranchContacts();
+    window.addEventListener("locationUpdated", loadBranchContacts);
+    return () => window.removeEventListener("locationUpdated", loadBranchContacts);
+  }, [loadBranchContacts]);
 
   const handleScrollAction = () => {
     if (isAtFooter) {
@@ -43,6 +72,15 @@ const Footer = () => {
 
   const secondaryColor = "text-[var(--secondary-bg)]";
 
+  const formatAddress = (branch) => {
+    const parts = [];
+    if (branch.address?.trim()) parts.push(branch.address.trim());
+    if (branch.city?.trim() && !branch.address?.toLowerCase().includes(branch.city.toLowerCase())) {
+      parts.push(branch.city.trim());
+    }
+    return parts.join(", ") || branch.city || "—";
+  };
+
   return (
     <footer
       ref={footerRef}
@@ -68,32 +106,43 @@ const Footer = () => {
             </h3>
 
             <div className="space-y-4 opacity-90">
-              {contactConfig.branches.map((branch, index) => (
+              {!loaded && (
+                <p className="text-sm opacity-70">Loading branch details…</p>
+              )}
+              {loaded && branches.length === 0 && (
+                <p className="text-sm opacity-70">Branch contact details are not available yet.</p>
+              )}
+              {branches.map((branch, index) => (
                 <div key={branch.id} className={index !== 0 ? "pt-2" : ""}>
-                  <p className="font-black bg-[var(--accent-white) uppercase text-sm tracking-widest mb-1">
+                  <p className="font-black bg-[var(--accent-white) uppercase text-sm tracking-widest mb-1 text-[var(--primary-bg)] px-1 inline-block">
                     {branch.name}
+                    {branch.city ? ` — ${branch.city}` : ""}
                   </p>
-                  <p className="text-sm">{branch.address}</p>
-                  <p className={secondaryColor}>{branch.phone}</p>
+                  <p className="text-sm">{formatAddress(branch)}</p>
+                  {branch.phone ? (
+                    <p className={secondaryColor}>{branch.phone}</p>
+                  ) : null}
                 </div>
               ))}
             </div>
 
-            <div className="pt-2 border-t border-white/5">
-              <h4
-                className={`font-black uppercase tracking-widest text-lg mb-2 ${secondaryColor}`}
-              >
-                Service Hours
-              </h4>
-              <div className="flex justify-between max-w-sm opacity-80">
-                <span className="font-bold uppercase text-sm">
-                  {contactConfig.serviceHours.days}
-                </span>
-                <span className="font-black text-sm">
-                  {contactConfig.serviceHours.time}
-                </span>
+            {(serviceHours.time || !loaded) && (
+              <div className="pt-2 border-t border-white/5">
+                <h4
+                  className={`font-black uppercase tracking-widest text-lg mb-2 ${secondaryColor}`}
+                >
+                  Service Hours
+                </h4>
+                <div className="flex justify-between max-w-sm opacity-80">
+                  <span className="font-bold uppercase text-sm">
+                    {serviceHours.days}
+                  </span>
+                  <span className="font-black text-sm">
+                    {loaded ? (serviceHours.time || "—") : "…"}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="md:col-span-5 flex flex-col items-center md:items-start space-y-8">

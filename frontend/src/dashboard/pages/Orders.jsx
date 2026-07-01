@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { fmt, STATUS_STYLE, SectionHeader, Modal } from '../components/ui';
+import { fmt, STATUS_STYLE, SectionHeader, Modal, orderCustomerName, orderSubtitle } from '../components/ui';
 import { SOURCE_LABELS, SOURCE_COLORS, ORDER_TYPE_LABELS, PAYMENT_LABELS } from '../data/mockData';
 
 export default function Orders() {
@@ -53,7 +53,6 @@ export default function Orders() {
         const q = search.toLowerCase();
         if (
           !o.customerName?.toLowerCase().includes(q) &&
-          !o.id?.toLowerCase().includes(q) &&
           !o.customerPhone?.includes(q)
         ) return false;
       }
@@ -89,7 +88,7 @@ export default function Orders() {
   const sources = [...new Set(orderList.map(o => o.source))];
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
 
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
@@ -103,7 +102,7 @@ export default function Orders() {
       </div>
 
       {/* Status summary cards */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12 }}>
+      <div className="grid-5">
         {[
           { s:'pending',   l:'Pending',   c:'var(--yellow)' },
           { s:'confirmed', l:'Confirmed', c:'var(--blue)'   },
@@ -146,10 +145,11 @@ export default function Orders() {
 
       {/* Orders table */}
       <div className="card" style={{ padding:0, overflow:'hidden' }}>
+        <div className="table-scroll">
         <table className="table">
           <thead>
             <tr>
-              <th>Order</th><th>Customer</th><th>Source</th><th>Type</th>
+              <th>Customer</th><th>Source</th><th>Type</th>
               <th>Branch</th><th>Items</th><th>Total</th><th>Payment</th>
               <th>Status</th><th>Time</th><th>Actions</th>
             </tr>
@@ -178,13 +178,11 @@ export default function Orders() {
                     transition:'background .2s, outline .2s',
                   }}>
                   <td>
-                    <span style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, color:'var(--accent)', fontSize:11 }}>{o.id}</span>
-                    {o.posSync && <span className="badge badge-blue" style={{ marginLeft:4, fontSize:9 }}>POS</span>}
-                    {isHighlighted && <span className="badge badge-orange" style={{ marginLeft:4, fontSize:9 }}>New</span>}
-                  </td>
-                  <td>
-                    <div style={{ fontWeight:600 }}>{o.customerName}</div>
+                    <div style={{ fontWeight:600 }}>{orderCustomerName(o)}</div>
                     {o.customerPhone && <div style={{ fontSize:10, color:'var(--text-m)' }}>{o.customerPhone}</div>}
+                    <div style={{ fontSize:10, color:'var(--text-m)', marginTop:2 }}>{orderSubtitle(o)}</div>
+                    {o.posSync && <span className="badge badge-blue" style={{ marginTop:4, fontSize:9 }}>POS</span>}
+                    {isHighlighted && <span className="badge badge-orange" style={{ marginLeft:4, fontSize:9 }}>New</span>}
                   </td>
                   <td>
                     <span style={{ fontSize:11, background:`${srcColor}18`, color:srcColor, padding:'2px 8px', borderRadius:99, fontWeight:700 }}>
@@ -217,6 +215,7 @@ export default function Orders() {
             })}
           </tbody>
         </table>
+        </div>
         {baseOrders.length === 0 && (
           <div style={{ textAlign:'center', padding:'60px 24px', color:'var(--text-m)', fontSize:13 }}>No orders match the current filters.</div>
         )}
@@ -226,12 +225,12 @@ export default function Orders() {
       {selectedOrder && (
         <div className="card fade-up" style={{ borderLeft:`3px solid var(--accent)` }}>
           <SectionHeader
-            title={`Order Detail — ${selectedOrder.id}`}
+            title={`Order — ${orderCustomerName(selectedOrder)}`}
             sub={`${SOURCE_LABELS[selectedOrder.source]||selectedOrder.source} · ${selectedOrder.customerName} · ${new Date(selectedOrder.createdAt).toLocaleString('en',{dateStyle:'medium',timeStyle:'short'})}`}>
             <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={() => setSelectedOrder(null)}>Close</button>
           </SectionHeader>
 
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, marginBottom:16 }}>
+          <div className="grid-3" style={{ marginBottom:16 }}>
             {/* Customer block */}
             <div style={{ background:'var(--elevated)', borderRadius:'var(--r)', padding:'14px 16px' }}>
               <div style={{ fontSize:10, fontWeight:800, color:'var(--text-m)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Customer</div>
@@ -374,7 +373,7 @@ export default function Orders() {
       {/* New order modal */}
       {showNewOrder && (
         <Modal title="Create New Order" onClose={() => setShowNewOrder(false)} maxWidth={560}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="grid-form-2">
             <div style={{ gridColumn:'1/-1' }}>
               <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Customer Name *</div>
               <input className="input" value={newOrder.customerName} onChange={e => setNewOrder(f=>({...f,customerName:e.target.value}))} placeholder="Full name"/>

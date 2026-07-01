@@ -53,7 +53,7 @@ export default function Inventory() {
   };
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Inventory</h2>
@@ -130,7 +130,7 @@ export default function Inventory() {
 
       {showModal && (
         <Modal title={editItem ? 'Edit Inventory Item' : 'Add Inventory Item'} onClose={()=>setShowModal(false)}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="grid-form-2">
             <div style={{ gridColumn:'1/-1' }}>
               <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Item Name *</div>
               <input className="input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Beef Patty (100g)"/>

@@ -189,7 +189,7 @@ export default function Products() {
   const toggleTag = (t) => setForm(f => ({ ...f, tags: f.tags.includes(t) ? f.tags.filter(x=>x!==t) : [...f.tags, t] }));
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Menu & Products</h2>
@@ -238,7 +238,7 @@ export default function Products() {
                 </div>
                 <label className="toggle" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={p.active} onChange={()=>toggleProductStatus(p.id)}/><span className="toggle-slider"/></label>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              <div className="grid-form-2" style={{ gap:8 }}>
                 {[
                   { l:'Price', v:`PKR ${p.price?.toLocaleString()}` },
                   { l:'Cost',  v:`PKR ${p.cost?.toLocaleString()}` },
@@ -271,7 +271,7 @@ export default function Products() {
 
       {showModal && (
         <Modal title={editProduct ? 'Edit Product' : 'Add New Product'} onClose={()=>setShowModal(false)} maxWidth={620}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="grid-form-2">
             <div style={{ gridColumn:'1/-1' }}>
               <ImageUploader value={form.image} onChange={v=>setForm(f=>({...f,image:v}))} type="products"/>
             </div>

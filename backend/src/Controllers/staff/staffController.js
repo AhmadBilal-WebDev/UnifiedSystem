@@ -2,6 +2,8 @@ import StaffUser from "../../Models/StaffUser.js";
 import { sendEmail } from "../../Services/emailService.js";
 import crypto from "crypto";
 
+const STAFF_ROLES = ["branch_manager", "counter", "editor", "viewer", "kitchen"];
+
 const ROLE_DEFAULT_PERMISSIONS = {
   branch_manager: [
     "orders.view", "orders.create", "orders.accept", "orders.reject", "orders.advance",
@@ -63,17 +65,34 @@ export const getStaff = async (req, res) => {
 export const createStaff = async (req, res) => {
   try {
     const { restaurantId, branchId } = req.user;
-    const { name, email, role, branchIds, permissions, phone } = req.body;
+    const { name, email, role, branchIds, permissions, phone, password: ownerPassword } = req.body;
 
     if (!name || !email || !role)
       return res.status(400).json({ success: false, message: "name, email, role required." });
 
-    const existing = await StaffUser.findOne({ email: email.toLowerCase() });
+    if (!STAFF_ROLES.includes(role))
+      return res.status(400).json({ success: false, message: "Invalid staff role." });
+
+    const ownerRestaurantId = restaurantId || req.body.restaurantId;
+    if (!ownerRestaurantId)
+      return res.status(400).json({ success: false, message: "restaurantId required." });
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await StaffUser.findOne({ email: normalizedEmail });
     if (existing)
       return res.status(409).json({ success: false, message: "An account with this email already exists." });
 
-    // Generate a temporary password
-    const tempPassword = crypto.randomBytes(6).toString("hex");
+    const resolvedBranchIds = (branchIds?.length ? branchIds : (branchId ? [branchId] : []));
+    if (resolvedBranchIds.length === 0)
+      return res.status(400).json({ success: false, message: "At least one branch must be assigned." });
+
+    let tempPassword = typeof ownerPassword === "string" ? ownerPassword.trim() : "";
+    if (tempPassword) {
+      if (tempPassword.length < 6)
+        return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+    } else {
+      tempPassword = crypto.randomBytes(4).toString("hex") + "A1";
+    }
 
     const resolvedPermissions =
       permissions?.length > 0
@@ -81,40 +100,116 @@ export const createStaff = async (req, res) => {
         : ROLE_DEFAULT_PERMISSIONS[role] || [];
 
     const staff = await StaffUser.create({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      email: normalizedEmail,
       password: tempPassword,
       role,
       accountType: "staff",
-      restaurantId: restaurantId || req.body.restaurantId,
-      branchIds: branchIds || (branchId ? [branchId] : []),
-      parentBranchId: branchId || null,
+      restaurantId: ownerRestaurantId,
+      branchIds: resolvedBranchIds,
+      parentBranchId: resolvedBranchIds[0],
       permissions: resolvedPermissions,
       phone: phone || "",
+      avatar: name.trim().split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2),
       color: req.body.color || "#6366f1",
+      status: "active",
     });
 
-    // Send invite email
-    await sendEmail({
-      to: email,
-      subject: "You've been invited to RestaurantOS",
+    const loginUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/admin`;
+    const emailResult = await sendEmail({
+      to: normalizedEmail,
+      subject: "Your RestaurantOS staff account",
       html: `
         <p>Hi ${name},</p>
-        <p>You have been added to the RestaurantOS platform as <strong>${role}</strong>.</p>
-        <p><strong>Login Email:</strong> ${email}</p>
+        <p>You have been added as <strong>${role.replace("_", " ")}</strong>.</p>
+        <p><strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
+        <p><strong>Email:</strong> ${normalizedEmail}</p>
         <p><strong>Temporary Password:</strong> ${tempPassword}</p>
-        <p>Please login and change your password immediately.</p>
-        <a href="${process.env.FRONTEND_URL}/admin/login" style="background:#f97316;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Login Now</a>
+        <p>Please sign in and change your password from Settings.</p>
       `,
-    }).catch(e => console.warn("Email send warning:", e.message));
+    });
+
+    const emailSent = emailResult?.sent === true;
 
     return res.status(201).json({
       success: true,
       data: staff,
-      message: `Staff member invited. Temporary password sent to ${email}.`,
+      tempPassword,
+      emailSent,
+      loginUrl,
+      credentials: {
+        email: normalizedEmail,
+        password: tempPassword,
+        loginUrl,
+      },
+      message: emailSent
+        ? `Staff invited. Login details emailed to ${normalizedEmail}.`
+        : `Staff created. Copy the password below and share it with ${name}.`,
     });
   } catch (err) {
     console.error("createStaff error:", err);
+    return res.status(500).json({ success: false, message: "Server error.", error: err.message });
+  }
+};
+
+/**
+ * PATCH /api/admin/staff/:id/reset-password
+ * Owner resets a staff member's password and optionally emails it.
+ */
+export const resetStaffPassword = async (req, res) => {
+  try {
+    const staff = await StaffUser.findById(req.params.id);
+    if (!staff) return res.status(404).json({ success: false, message: "Staff not found." });
+
+    if (staff.accountType !== "staff")
+      return res.status(400).json({ success: false, message: "Can only reset passwords for staff accounts." });
+
+    const { restaurantId } = req.user;
+    if (restaurantId && String(staff.restaurantId) !== String(restaurantId))
+      return res.status(403).json({ success: false, message: "Not allowed." });
+
+    const ownerPassword = typeof req.body?.password === "string" ? req.body.password.trim() : "";
+    let tempPassword = ownerPassword;
+    if (tempPassword) {
+      if (tempPassword.length < 6)
+        return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+    } else {
+      tempPassword = crypto.randomBytes(4).toString("hex") + "A1";
+    }
+
+    staff.password = tempPassword;
+    staff.status = "active";
+    await staff.save();
+
+    const loginUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/admin`;
+    const emailResult = await sendEmail({
+      to: staff.email,
+      subject: "Your RestaurantOS password was reset",
+      html: `
+        <p>Hi ${staff.name},</p>
+        <p>Your password was reset by your restaurant admin.</p>
+        <p><strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
+        <p><strong>Email:</strong> ${staff.email}</p>
+        <p><strong>New Password:</strong> ${tempPassword}</p>
+      `,
+    });
+
+    return res.status(200).json({
+      success: true,
+      tempPassword,
+      emailSent: emailResult?.sent === true,
+      loginUrl,
+      credentials: {
+        email: staff.email,
+        password: tempPassword,
+        loginUrl,
+      },
+      message: emailResult?.sent
+        ? `New password emailed to ${staff.email}.`
+        : `Password reset. Share the new password with ${staff.name}.`,
+    });
+  } catch (err) {
+    console.error("resetStaffPassword error:", err);
     return res.status(500).json({ success: false, message: "Server error.", error: err.message });
   }
 };
@@ -124,9 +219,18 @@ export const createStaff = async (req, res) => {
  */
 export const updateStaff = async (req, res) => {
   try {
-    // Don't allow password change through this route
-    const { password, ...updates } = req.body;
-    const staff = await StaffUser.findByIdAndUpdate(req.params.id, updates, { new: true });
+    const { password, status, role, ...updates } = req.body;
+
+    const allowedStatus = ["active", "blocked", "inactive"];
+    const patch = { ...updates };
+    if (status && allowedStatus.includes(status)) patch.status = status;
+    if (role && STAFF_ROLES.includes(role)) patch.role = role;
+
+    if (patch.branchIds?.length) {
+      patch.parentBranchId = patch.branchIds[0];
+    }
+
+    const staff = await StaffUser.findByIdAndUpdate(req.params.id, patch, { new: true, runValidators: true });
     if (!staff) return res.status(404).json({ success: false, message: "Staff not found." });
     return res.status(200).json({ success: true, data: staff, message: "Staff updated." });
   } catch (err) {

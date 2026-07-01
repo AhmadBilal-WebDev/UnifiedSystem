@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { fmt, SectionHeader, LiveDot, Modal } from '../components/ui';
+import { fmt, SectionHeader, LiveDot, Modal, orderCustomerName, orderSubtitle } from '../components/ui';
 import { SOURCE_LABELS, PAYMENT_LABELS } from '../data/mockData';
 
 export default function CounterPanel() {
@@ -26,7 +26,7 @@ export default function CounterPanel() {
   const branchName = activeBranchId ? branchList.find(b=>b.id===activeBranchId)?.name : 'All Branches';
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
       <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', justifyContent:'space-between' }}>
         <div>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Counter Panel</h2>
@@ -43,7 +43,7 @@ export default function CounterPanel() {
       </div>
 
       {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+      <div className="grid-4">
         {[
           { l:'Pending COD', v:pending.length, c:'var(--accent)' },
           { l:'Accepted Today', v:acceptedToday.length, c:'var(--green)' },
@@ -80,7 +80,8 @@ export default function CounterPanel() {
                   <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:12, marginBottom:14 }}>
                     <div>
                       <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:800, fontSize:16, color:'var(--accent)' }}>{o.id}</span>
+                        <span style={{ fontWeight:800, fontSize:16, color:'var(--accent)' }}>{orderCustomerName(o)}</span>
+                        <div style={{ fontSize:11, color:'var(--text-m)', marginTop:2 }}>{orderSubtitle(o)}</div>
                         <span className="badge badge-orange">{SOURCE_LABELS[o.source]||o.source}</span>
                         {o.callAttempts > 0 && <span className="badge badge-blue">{o.callAttempts} call{o.callAttempts>1?'s':''}</span>}
                         <span className={`badge badge-${o.confirmStatus==='pending_call'?'yellow':o.confirmStatus==='no_answer'?'red':'blue'}`}>
@@ -136,13 +137,15 @@ export default function CounterPanel() {
         <div className="card" style={{ padding:0, overflow:'hidden' }}>
           <table className="table">
             <thead>
-              <tr><th>Order</th><th>Customer</th><th>Source</th><th>Total</th><th>Payment</th><th>Status</th><th>Time</th></tr>
+              <tr><th>Customer</th><th>Source</th><th>Total</th><th>Payment</th><th>Status</th><th>Time</th></tr>
             </thead>
             <tbody>
               {todayOrders.map(o=>(
                 <tr key={o.id}>
-                  <td><span style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:11, color:'var(--accent)' }}>{o.id}</span></td>
-                  <td style={{ fontWeight:600 }}>{o.customerName}</td>
+                  <td>
+                    <div style={{ fontWeight:600 }}>{orderCustomerName(o)}</div>
+                    <div style={{ fontSize:10, color:'var(--text-m)' }}>{orderSubtitle(o)}</div>
+                  </td>
                   <td><span style={{ fontSize:11, color:'var(--text-s)' }}>{SOURCE_LABELS[o.source]||o.source}</span></td>
                   <td style={{ fontFamily:"'JetBrains Mono',monospace", fontWeight:700, fontSize:12 }}>{fmt(o.total)}</td>
                   <td style={{ fontSize:11, color:'var(--text-m)' }}>{PAYMENT_LABELS[o.paymentMethod]||o.paymentMethod}</td>

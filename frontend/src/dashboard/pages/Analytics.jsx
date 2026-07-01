@@ -82,7 +82,7 @@ export default function Analytics() {
   const COLORS = ['var(--accent)','var(--blue)','var(--green)','var(--purple)','var(--yellow)','var(--cyan)','var(--red)','var(--orange)'];
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:22 }}>
+    <div className="page-content">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Analytics</h2>
@@ -100,7 +100,7 @@ export default function Analytics() {
       </div>
 
       {/* KPI Row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+      <div className="grid-4">
         {[
           { l:'Total Revenue',    v:fmt(totalRevenue),    c:'var(--accent)', sub:`${range} day period` },
           { l:'Total Orders',     v:totalOrders,          c:'var(--blue)',   sub:`${Math.round(totalOrders/range)} avg/day` },

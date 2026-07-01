@@ -4,7 +4,7 @@ import React, {
   useCallback, useEffect, useRef,
 } from "react";
 import api, { setToken, clearToken, getToken } from "../services/api.js";
-import { ROLES, PERMISSIONS, CONFIRM_STATUS } from "../data/mockData.js"; // keep enums/labels
+import { ROLES, PERMISSIONS, CONFIRM_STATUS, PAGE_PERMISSION_HINTS, getDefaultNavForRole } from "../data/mockData.js"; // keep enums/labels
 
 const AppContext = createContext(null);
 
@@ -29,6 +29,7 @@ export function AppProvider({ children }) {
   const [activeClientId,   setActiveClientId ] = useState(null);
   const [activeNav,        setActiveNav      ] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen,   setMobileMenuOpen  ] = useState(false);
   const [theme,            setTheme          ] = useState(
     () => localStorage.getItem("ros-theme") || "dark"
   );
@@ -48,6 +49,21 @@ export function AppProvider({ children }) {
     localStorage.setItem("ros-theme", theme);
   }, [theme]);
   const toggleTheme = useCallback(() => setTheme(t => t === "dark" ? "light" : "dark"), []);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth > 768) setMobileMenuOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const openMobileMenu  = useCallback(() => setMobileMenuOpen(true),  []);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  const navigateTo = useCallback((nav) => {
+    setActiveNav(nav);
+    setMobileMenuOpen(false);
+  }, []);
 
   // ── Toasts ────────────────────────────────────────────────────────────────
   const addToast = useCallback((message, type = "info", duration = 3500) => {
@@ -140,10 +156,7 @@ export function AppProvider({ children }) {
     setCurrentUser(frontendUser);
     setActiveClientId(frontendUser.restaurantId || null);
     if (branchId) setActiveBranchId(branchId);
-    setActiveNav(
-      frontendUser.role === ROLES.COUNTER ? "counter" :
-      frontendUser.role === ROLES.KITCHEN ? "kitchen" : "dashboard"
-    );
+    setActiveNav(getDefaultNavForRole(frontendUser.role));
   };
 
   // ── Auth ─────────────────────────────────────────────────────────────────
@@ -191,7 +204,12 @@ export function AppProvider({ children }) {
     if (p.pages?.includes(action)) return true;
     if (p.actions?.includes(action)) return true;
 
-    // Also check granular backend permissions
+    // Granular backend permissions (e.g. orders.view → orders page)
+    const hints = PAGE_PERMISSION_HINTS[action];
+    if (hints?.some((h) => currentUser.permissions?.some((p) => p === h || p.startsWith(h)))) {
+      return true;
+    }
+
     if (currentUser.permissions?.includes(action)) return true;
     return false;
   }, [currentUser]);
@@ -392,13 +410,30 @@ export function AppProvider({ children }) {
     } catch (e) { console.warn("fetchStaff:", e.message); }
   };
 
+  const extractStaffCredentials = (res) => ({
+    tempPassword: res?.tempPassword || res?.credentials?.password || res?.data?.tempPassword || '',
+    emailSent: Boolean(res?.emailSent),
+    loginUrl: res?.loginUrl || res?.credentials?.loginUrl || `${window.location.origin}/admin`,
+    message: res?.message || '',
+  });
+
   const addStaff = useCallback(async (data) => {
     try {
       const res = await api.staff.create(data);
-      const u = { ...res.data, id: res.data._id };
+      const u = { ...res.data, id: res.data._id || res.data.id };
       setUserList(prev => [...prev, u]);
-      addToast(`${data.name} invited!`, "success");
-      return u;
+      const creds = extractStaffCredentials(res);
+      addToast(res.message || `${data.name} invited!`, creds.emailSent ? "success" : "info");
+      return { user: u, ...creds };
+    } catch (e) { addToast(e.message, "error"); throw e; }
+  }, [addToast]);
+
+  const resetStaffPassword = useCallback(async (id, password) => {
+    try {
+      const res = await api.staff.resetPassword(id, password);
+      const creds = extractStaffCredentials(res);
+      addToast(res.message || "Password reset.", creds.emailSent ? "success" : "info");
+      return creds;
     } catch (e) { addToast(e.message, "error"); throw e; }
   }, [addToast]);
 
@@ -575,8 +610,9 @@ export function AppProvider({ children }) {
     // UI
     activeBranchId, setActiveBranchId,
     activeClientId, setActiveClientId,
-    activeNav, setActiveNav,
+    activeNav, setActiveNav, navigateTo,
     sidebarCollapsed, setSidebarCollapsed,
+    mobileMenuOpen, setMobileMenuOpen, openMobileMenu, closeMobileMenu,
     theme, toggleTheme,
     toasts, addToast, removeToast,
     highlightOrderId, setHighlightOrderId,
@@ -599,7 +635,7 @@ export function AppProvider({ children }) {
     updateBranch, addBranch, addBranchArea, removeBranchArea,
 
     // Staff
-    addStaff, updateStaff, removeStaff, updateStaffPermissions,
+    addStaff, updateStaff, removeStaff, updateStaffPermissions, resetStaffPassword,
 
     // Inventory
     updateInventory, addInventory,

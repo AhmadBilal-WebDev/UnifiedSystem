@@ -25,7 +25,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg-base)', padding:20 }}>
+    <div className="login-page">
       <div style={{ display:'flex', flexDirection:'column', width:'100%', maxWidth:400, gap:24 }}>
 
         <div style={{ textAlign:'center' }}>

@@ -32,7 +32,7 @@ export default function Branches() {
   };
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div>
           <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Branches</h2>
@@ -43,7 +43,7 @@ export default function Branches() {
       </div>
 
       {/* Summary row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+      <div className="grid-4">
         {[
           { l:'Total Branches', v:branches.length, color:'var(--text)' },
           { l:'Open Now', v:branches.filter(b=>b.status==='open').length, color:'var(--green)' },
@@ -60,7 +60,7 @@ export default function Branches() {
       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         {branches.map((b,i) => (
           <div key={b.id} className="card fade-up" style={{ animationDelay:`${i*50}ms` }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:20, alignItems:'start' }}>
+            <div className="grid-branch-row">
               <div style={{ display:'flex', gap:16, alignItems:'flex-start', flexWrap:'wrap' }}>
                 <div style={{ width:48, height:48, background:b.status==='open'?'var(--green-soft)':'var(--elevated)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, border:`1px solid ${b.status==='open'?'rgba(16,217,126,.44)':'var(--border)'}`, fontWeight:800, color:'var(--text-m)', flexShrink:0 }}>
                   {b.name.slice(0,2).toUpperCase()}
@@ -129,7 +129,7 @@ export default function Branches() {
                   </div>
                 </div>
               </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end', flexShrink:0 }}>
+              <div className="branch-actions">
                 <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={()=>openEdit(b)}>Edit</button>
                 <button onClick={()=>toggle(b)} className={`btn btn-${b.status==='open'?'danger':'ghost'}`} style={{ fontSize:11 }}>{b.status==='open'?'Close':'Open'}</button>
                 <button className="btn btn-ghost" style={{ fontSize:11 }} onClick={()=>addToast(`Loading analytics for ${b.name}...`,'info')}>Analytics</button>
@@ -141,12 +141,12 @@ export default function Branches() {
 
       {showEditModal && editBranch && (
         <Modal title={`Edit — ${editBranch.name}`} onClose={()=>setShowEditModal(false)} maxWidth={560}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <div style={{ gridColumn:'1/-1' }}>
+          <div className="grid-form-2">
+            <div className="span-full">
               <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Branch Name</div>
               <input className="input" value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
             </div>
-            <div style={{ gridColumn:'1/-1' }}>
+            <div className="span-full">
               <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Address</div>
               <input className="input" value={form.address||''} onChange={e=>setForm(f=>({...f,address:e.target.value}))}/>
             </div>
@@ -186,7 +186,7 @@ export default function Branches() {
                 {POS_SYSTEMS.map(s=><option key={s}>{s}</option>)}
               </select>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:10, gridColumn:'1/-1' }}>
+            <div className="span-full" style={{ display:'flex', alignItems:'center', gap:10 }}>
               <label className="toggle"><input type="checkbox" checked={form.posEnabled||false} onChange={e=>setForm(f=>({...f,posEnabled:e.target.checked}))}/><span className="toggle-slider"/></label>
               <div>
                 <div style={{ fontWeight:600, fontSize:13 }}>POS Integration Enabled</div>

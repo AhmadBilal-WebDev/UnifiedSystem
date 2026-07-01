@@ -9,7 +9,7 @@ import { getOrders, getOrderById, updateOrderStatus, acceptOrder, rejectOrder, l
 import { getProducts, getProductById, createProduct, updateProduct, deleteProduct, toggleProductStatus, getPublicMenu } from "../Controllers/products/productsController.js";
 import { getCategories, createCategory, updateCategory, deleteCategory } from "../Controllers/categories/categoriesController.js";
 import { getBranches, getBranchById, createBranch, updateBranch, deleteBranch, addArea, removeArea, getPublicBranches } from "../Controllers/branches/branchesController.js";
-import { getStaff, createStaff, updateStaff, updatePermissions, toggleStaffStatus, deleteStaff } from "../Controllers/staff/staffController.js";
+import { getStaff, createStaff, updateStaff, updatePermissions, toggleStaffStatus, deleteStaff, resetStaffPassword } from "../Controllers/staff/staffController.js";
 import { getInventory, createInventoryItem, updateInventoryItem, restockItem, deleteInventoryItem } from "../Controllers/inventory/inventoryController.js";
 import { getAnalyticsSummary, getRevenueReport } from "../Controllers/analytics/analyticsController.js";
 import { getNotifications, markRead, markAllRead } from "../Controllers/notifications/notificationsController.js";
@@ -72,6 +72,7 @@ router.get(   "/api/admin/staff",                      verifyAdminToken, authori
 router.post(  "/api/admin/staff",                      verifyAdminToken, authorizePermission("staff.create"), createStaff);
 router.put(   "/api/admin/staff/:id",                  verifyAdminToken, authorizePermission("staff.edit"),   updateStaff);
 router.patch( "/api/admin/staff/:id/permissions",      verifyAdminToken, authorizePermission("staff.edit"),   updatePermissions);
+router.patch( "/api/admin/staff/:id/reset-password",   verifyAdminToken, authorizePermission("staff.edit"),   resetStaffPassword);
 router.patch( "/api/admin/staff/:id/toggle-status",    verifyAdminToken, authorizePermission("staff.edit"),   toggleStaffStatus);
 router.delete("/api/admin/staff/:id",                  verifyAdminToken, authorizePermission("staff.delete"), deleteStaff);
 

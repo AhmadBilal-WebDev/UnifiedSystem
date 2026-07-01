@@ -25,11 +25,11 @@ export default function Reports() {
 
   const exportCSV = () => {
     if (filteredOrders.length === 0) return;
-    const headers = ['Order ID','Branch','Customer','Status','Source','Payment','Total','Created At'];
+    const headers = ['Branch','Customer','Status','Source','Payment','Total','Created At'];
     const rows = filteredOrders.map(o => {
       const branchName = branches.find(b => b.id === o.branchId || b._id === o.branchId)?.name || '';
       return [
-        String(o.id || o._id), branchName, o.customerName || '', o.status, o.source,
+        branchName, o.customerName || '', o.status, o.source,
         o.paymentMethod, o.total, new Date(o.createdAt).toLocaleString(),
       ];
     });
@@ -62,13 +62,13 @@ export default function Reports() {
   ];
 
   return (
-    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+    <div className="page-content">
       <div>
         <h2 style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:800, fontSize:18 }}>Reports</h2>
         <p style={{ fontSize:12, color:'var(--text-m)', marginTop:2 }}>Generate and export detailed reports</p>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'260px 1fr', gap:20 }}>
+      <div className="grid-report">
         {/* Report Types */}
         <div className="card" style={{ alignSelf:'start' }}>
           <div style={{ fontSize:11, fontWeight:700, color:'var(--text-m)', marginBottom:12, textTransform:'uppercase', letterSpacing:'.06em' }}>Report Type</div>
@@ -85,7 +85,7 @@ export default function Reports() {
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
           <div className="card">
             <SectionHeader title="Configure Report" sub={REPORT_TYPES.find(r=>r.id===reportType)?.desc}/>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+            <div className="grid-form-2" style={{ gap:14 }}>
               <div>
                 <div style={{ fontSize:10, fontWeight:700, color:'var(--text-m)', marginBottom:5, textTransform:'uppercase', letterSpacing:'.06em' }}>Branch</div>
                 <select className="input" value={branchFilter} onChange={e=>setBranchFilter(e.target.value)}>
@@ -124,7 +124,7 @@ export default function Reports() {
               </div>
             </div>
             <div style={{ padding:18 }}>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:18 }}>
+              <div className="grid-3" style={{ marginBottom:18 }}>
                 {[
                   { l:'Total Revenue',  v:fmt(totalRevenue),    c:'var(--accent)' },
                   { l:'Total Orders',   v:filteredOrders.length,c:'var(--blue)'   },
