@@ -24,7 +24,6 @@ import OrderPopup from "../../Components/Menu/Model/ProductModal";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const FoodSection = ({ catId, addToCart }) => {
-  // CRITICAL FIX: Array state banayi taake saari categories ka data aik sath save ho sake
   const [categoriesList, setCategoriesList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +51,6 @@ const FoodSection = ({ catId, addToCart }) => {
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const navigate = useNavigate();
 
-  // API Call directly inside FoodSection
   const fetchCategoryMenu = async () => {
     try {
       setLoading(true);
@@ -89,12 +87,13 @@ const FoodSection = ({ catId, addToCart }) => {
       });
 
       if (response.data && response.data.success && response.data.menu) {
-        // Map over all categories inside the response instead of finding just one
         const formattedCategories = response.data.menu.map((dbCategory) => ({
           id: dbCategory.id || dbCategory._id,
           name: dbCategory.name,
+          icon: dbCategory.icon || "",
           desc: dbCategory.desc || "",
           bannerImg: dbCategory.bannerImg || "",
+
           items: (dbCategory.items || []).map((item) => ({
             id: item.id || item._id,
             name: item.name,
@@ -116,10 +115,10 @@ const FoodSection = ({ catId, addToCart }) => {
               name: e.name,
               price: e.price || e.Price,
             })),
+            tags: item.tags || [],
           })),
         }));
 
-        // Filter if catId is present and not general, otherwise show all
         if (catId && catId !== "all" && catId !== 1 && catId !== "1") {
           const filtered = formattedCategories.filter(
             (c) =>
@@ -206,7 +205,6 @@ const FoodSection = ({ catId, addToCart }) => {
     );
   }
 
-  // CRITICAL FIX: Check if array has data
   if (categoriesList.length === 0) {
     return (
       <div className="flex justify-center items-center h-32 text-xs font-serif text-gray-400">
@@ -224,13 +222,16 @@ const FoodSection = ({ catId, addToCart }) => {
     setMainItemQty(1);
     setAddedExtras([]);
     setAddedAddons([]);
-    // If this product has sizes, the size price REPLACES the base price —
-    // auto-select the cheapest size so the modal opens with a valid total.
+
     const itemSizes = item?.sizes || [];
     if (itemSizes.length > 0) {
       const cheapest = [...itemSizes].sort((a, b) => {
-        const pa = parseFloat(String(a.price ?? a.Price ?? 0).replace(/[^\d.]/g, "")) || 0;
-        const pb = parseFloat(String(b.price ?? b.Price ?? 0).replace(/[^\d.]/g, "")) || 0;
+        const pa =
+          parseFloat(String(a.price ?? a.Price ?? 0).replace(/[^\d.]/g, "")) ||
+          0;
+        const pb =
+          parseFloat(String(b.price ?? b.Price ?? 0).replace(/[^\d.]/g, "")) ||
+          0;
         return pa - pb;
       })[0];
       setSelectedSize(cheapest);
@@ -253,10 +254,6 @@ const FoodSection = ({ catId, addToCart }) => {
 
     const base = safeNum(selectedItem.price || selectedItem.Price);
 
-    // When this product has sizes, the selected size's price REPLACES the
-    // base price entirely (e.g. S=560/M=1230/L=1900 — picking M means the
-    // item costs 1230, not base+1230). The base price is only used as the
-    // actual price when the product has no sizes at all.
     const hasSizes = sizesList.length > 0;
     const sizePrice = selectedSize
       ? safeNum(
@@ -400,7 +397,6 @@ const FoodSection = ({ catId, addToCart }) => {
         </motion.div>
       )}
 
-      {/* CRITICAL FIX: Loop started here to map over all categories dynamically */}
       {categoriesList.map((categoryData) => (
         <section
           key={categoryData.id}
@@ -417,9 +413,19 @@ const FoodSection = ({ catId, addToCart }) => {
                 transition={{ duration: 0.5 }}
                 className="flex flex-col items-center sm:items-start relative sm:text-start"
               >
-                <span className="px-3 py-1 rounded-full text-[8px] font-semibold font-serif uppercase bg-[var(--container-tag-bg-color)] text-black">
-                  Limited Edition
-                </span>
+                {categoryData.icon && (
+                  <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold font-serif uppercase bg-[var(--container-tag-bg-color)] text-black">
+                    {categoryData.icon.startsWith("http") ? (
+                      <img
+                        src={categoryData.icon}
+                        alt="icon"
+                        className="w-4 h-4"
+                      />
+                    ) : (
+                      <span>{categoryData.icon}</span>
+                    )}
+                  </span>
+                )}
                 <h1
                   className={`mt-3 text-[var(--container-title-bg-color)] font-semibold text-[30px] text-center uppercase tracking-[0.1rem] font-serif sm:text-[35px] md:text-[45px]`}
                 >
@@ -440,7 +446,7 @@ const FoodSection = ({ catId, addToCart }) => {
                 <motion.img
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.1, rotate: 5, y: -10 }}
+                  whileHover={{ scale: 1.05 }}
                   src={categoryData.bannerImg}
                   alt={categoryData.name}
                   className="w-[18rem] mt-5 rounded-2xl sm:mt-0 sm:w-[20rem] md:w-[22rem]"
@@ -460,10 +466,19 @@ const FoodSection = ({ catId, addToCart }) => {
                       alt={item.name}
                       className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                     />
-                    <div
-                      className={`absolute top-[8px] left-[8px] text-[7px] tracking-tight md:text-[10px] font-semibold font-serif px-2.5 py-1 rounded-full bg-[var(--carts-tag-bg-color)] text-[var(--carts-tag-color)] shadow-sm backdrop-blur-md transition-opacity duration-300 opacity-90 group-hover:opacity-100`}
-                    >
-                      {item.name}
+                    {/* Debugging Tag Area */}
+                    {/* Debugging Tag Area - Sahi wala code */}
+                    <div className="absolute top-[8px] left-[8px] z-10 flex flex-wrap gap-1">
+                      {Array.isArray(item.tags) && item.tags.length > 0
+                        ? item.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="text-[78x] md:text-[11px] font-semibold font-serif px-2 py-0.5 rounded-full bg-red-500 text-white shadow-sm"
+                            >
+                              {tag}
+                            </span>
+                          ))
+                        : null}
                     </div>
                   </div>
                   <div className="flex flex-col flex-grow">
@@ -487,25 +502,31 @@ const FoodSection = ({ catId, addToCart }) => {
                             Rs.
                           </span>
                           <p className="font-extrabold text-[20px] md:text-[22px] font-serif text-[var(--carts-price-color)] tracking-tighter">
-                          {(() => {
-                            const itemSizes = item.sizes || [];
-                            if (itemSizes.length > 0) {
-                              const cheapest = Math.min(
-                                ...itemSizes.map((s) =>
-                                  parseFloat(String(s.price ?? s.Price ?? 0).replace(/[^\d.]/g, "")) || 0
-                                )
-                              );
-                              return (
-                                <>
-                                  <span className="block text-[9px] md:text-[10px] uppercase font-bold font-serif tracking-[0.08rem] text-[var(--carts-price-color)] opacity-60">
-                                    Starting from
-                                  </span>
-                                  {cheapest}
-                                </>
-                              );
-                            }
-                            return item.price;
-                          })()}
+                            {(() => {
+                              const itemSizes = item.sizes || [];
+                              if (itemSizes.length > 0) {
+                                const cheapest = Math.min(
+                                  ...itemSizes.map(
+                                    (s) =>
+                                      parseFloat(
+                                        String(s.price ?? s.Price ?? 0).replace(
+                                          /[^\d.]/g,
+                                          "",
+                                        ),
+                                      ) || 0,
+                                  ),
+                                );
+                                return (
+                                  <>
+                                    <span className="block text-[9px] md:text-[10px] uppercase font-bold font-serif tracking-[0.08rem] text-[var(--carts-price-color)] opacity-60">
+                                      Starting from
+                                    </span>
+                                    {cheapest}
+                                  </>
+                                );
+                              }
+                              return item.price;
+                            })()}
                           </p>
                         </div>
                       </div>
@@ -551,7 +572,6 @@ const FoodSection = ({ catId, addToCart }) => {
         </section>
       ))}
 
-      {/* Modals outside the loops so they stay single instances */}
       <ProductModal
         showModal={showModal}
         setShowModal={setShowModal}

@@ -32,13 +32,29 @@ const Header = ({
   const [showCartSidebar, setShowCartSidebar] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   const isLandingPage = location.pathname === "/";
+
+  useEffect(() => {
+    const loadBranchData = () => {
+      const savedBranch = localStorage.getItem("selectedBranch");
+
+      if (savedBranch) {
+        const branch = JSON.parse(savedBranch);
+        setWhatsappNumber(branch.phone || branch.whatsapp || "");
+      }
+    };
+
+    loadBranchData();
+
+    window.addEventListener("branchUpdated", loadBranchData);
+    return () => window.removeEventListener("branchUpdated", loadBranchData);
+  }, []);
 
   useEffect(() => {
     const checkUser = () => {
@@ -204,7 +220,7 @@ const Header = ({
 
           <a
             title="Contact WhatsApp"
-            href={`https://wa.me/${CONTACT_CONFIG.whatsappNumber}`}
+            href={`https://wa.me/${whatsappNumber}`} // Yahan dynamic state use hogi
             target="_blank"
             rel="noopener noreferrer"
             className={`hidden lg:flex ${commonBtnClass} bg-[var(--secondary-bg)] text-black px-4 gap-2 cursor-pointer shrink-0`}
@@ -323,7 +339,7 @@ const Header = ({
 
       {isLandingPage && (
         <a
-          href={`https://wa.me/${CONTACT_CONFIG.whatsappNumber}`}
+          href={`https://wa.me/${whatsappNumber}`}
           target="_blank"
           rel="noopener noreferrer"
           className="fixed right-5.5 bottom-45 z-[55] lg:hidden bg-[#25D366] text-white p-3.5 rounded-full shadow-[0_10px_25px_rgba(37,211,102,0.4)] hover:scale-110 transition-all duration-300 flex items-center justify-center active:scale-90 border-2 border-white/20"
