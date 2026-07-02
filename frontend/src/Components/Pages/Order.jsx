@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DELIVERY_FEE } from "../../Contants/Config"; 
+import { DELIVERY_FEE } from "../../Contants/Config";
 import axios from "axios";
 import {
   CheckCircle2,
@@ -46,9 +46,12 @@ const MyOrders = () => {
 
   const confirmDeleteOrder = async () => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/orders/${orderToDelete}`, {
-        withCredentials: true,
-      });
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/orders/${orderToDelete}`,
+        {
+          withCredentials: true,
+        },
+      );
       setOrders(orders.filter((order) => order._id !== orderToDelete));
       setShowDeletePopup(false);
 
@@ -105,34 +108,34 @@ const MyOrders = () => {
   }
 
   const renderStatusBadge = (status) => {
-  const baseClass =
-    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider";
-  
-  const s = status ? status.toLowerCase() : "";
+    const baseClass =
+      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider";
 
-  if (s === "delivered" || s === "completed" || s === "accepted") {
+    const s = status ? status.toLowerCase() : "";
+
+    if (s === "delivered" || s === "completed" || s === "accepted") {
+      return (
+        <span className={`${baseClass} bg-green-100 text-green-700`}>
+          {status} <Check size={13} strokeWidth={3} />
+        </span>
+      );
+    }
+
+    if (s === "rejected" || s === "cancelled") {
+      return (
+        <span className={`${baseClass} bg-red-200 text-red-700`}>
+          {status} <XCircle size={13} />
+        </span>
+      );
+    }
+
     return (
-      <span className={`${baseClass} bg-green-100 text-green-700`}>
-        {status} <Check size={13} strokeWidth={3} />
+      <span className={`${baseClass} bg-orange-100 text-orange-700`}>
+        {status}{" "}
+        <div className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />
       </span>
     );
-  }
-
-  if (s === "rejected" || s === "cancelled") {
-    return (
-      <span className={`${baseClass} bg-red-200 text-red-700`}>
-        {status} <XCircle size={13} />
-      </span>
-    );
-  }
-
-  return (
-    <span className={`${baseClass} bg-orange-100 text-orange-700`}>
-      {status}{" "}
-      <div className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />
-    </span>
-  );
-};
+  };
 
   <button
     onClick={() => openOrderDetails(order)}
@@ -193,11 +196,15 @@ const MyOrders = () => {
                     <div className="flex-1 flex gap-5 items-center md:border-r md:border-dashed md:border-gray-100 md:pr-6">
                       <img
                         src={
-                          firstItem.img ||
+                          firstItem.image ||
                           "https://placehold.co/60x60?text=Food"
                         }
                         alt={firstItem.name}
                         className="w-20 h-20 object-cover rounded-2xl bg-gray-50 p-1"
+                        onError={(e) => {
+                          e.target.src =
+                            "https://placehold.co/60x60?text=No+Img";
+                        }}
                       />
                       <div className="space-y-1">
                         {renderStatusBadge(order.status)}
@@ -397,10 +404,15 @@ const MyOrders = () => {
                             </span>
                             <img
                               src={
-                                item.img ||
+                                item.image ||
                                 "https://placehold.co/60x60?text=Food"
                               }
+                              alt={item.name}
                               className="w-12 h-12 rounded-lg object-cover border"
+                              onError={(e) => {
+                                e.target.src =
+                                  "https://placehold.co/60x60?text=Error";
+                              }}
                             />
                           </div>
                         </td>
@@ -525,7 +537,7 @@ const MyOrders = () => {
                   <div className="flex justify-between w-full md:w-52 text-sm">
                     <span className="text-gray-500">Delivery Fee</span>
                     <span className="font-bold text-gray-900">
-Rs. {selectedOrder.deliveryFee ?? DELIVERY_FEE}
+                      Rs. {selectedOrder.deliveryFee ?? DELIVERY_FEE}
                     </span>
                   </div>
                   <div className="flex justify-between w-full md:w-52 border-t border-gray-200 pt-2">

@@ -56,7 +56,7 @@ const SettingRow = ({ icon: Icon, title, description, onClick, danger }) => (
 const SectionOverlay = ({ title, children, onClose }) => (
   <div className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-8">
         <h2 className="text-xl font-black text-gray-900">{title}</h2>
 
         <button
@@ -90,11 +90,11 @@ const SettingsPage = () => {
           withCredentials: true,
         });
 
-        if (res.data) {
+        if (res.data && res.data.user) {
           setUserData({
-            name: res.data.name || "N/A",
-            email: res.data.email || "N/A",
-            phone: res.data.phone || "N/A",
+            name: res.data.user.name || "N/A",
+            email: res.data.user.email || "N/A",
+            phone: res.data.user.phone || "N/A",
           });
         }
       } catch (err) {
@@ -146,7 +146,7 @@ const SettingsPage = () => {
   if (pageLoading) return <PageLoader />;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10">
+    <div className="min-h-screen bg-gray-50 p-6 md:p-7">
       <div className="max-w-2xl mx-auto">
         <div className="mb-10">
           <h1 className="text-4xl font-black text-gray-900">Settings</h1>
@@ -226,7 +226,7 @@ const SettingsPage = () => {
                 Need help? Contact our support team anytime.
               </p>
               <button
-              title="Contact With Whatapp"
+                title="Contact With Whatapp"
                 onClick={() =>
                   window.open(
                     `https://wa.me/${CONTACT_CONFIG.whatsappNumber}`,

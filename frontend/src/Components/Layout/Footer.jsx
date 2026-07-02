@@ -12,7 +12,10 @@ import { Link, useLocation } from "react-router-dom";
 const Footer = () => {
   const [isAtFooter, setIsAtFooter] = useState(false);
   const [branches, setBranches] = useState([]);
-  const [serviceHours, setServiceHours] = useState({ days: "Monday - Sunday", time: "" });
+  const [serviceHours, setServiceHours] = useState({
+    days: "Monday - Sunday",
+    time: "",
+  });
   const [loaded, setLoaded] = useState(false);
   const footerRef = useRef(null);
   const location = useLocation();
@@ -21,25 +24,34 @@ const Footer = () => {
 
   const loadBranchContacts = useCallback(async () => {
     const rows = await fetchLocationData();
-    setBranches(rows);
-
     const selected = getSelectedBranchFromStorage();
+
+    if (selected) {
+      setBranches([selected]);
+    } else {
+      setBranches(rows);
+    }
+
     const hoursBranch = selected || rows[0];
+
     if (hoursBranch) {
       setServiceHours({
         days: "Monday - Sunday",
-        time: formatBranchHours(hoursBranch.openTime, hoursBranch.closeTime) || "—",
+        time:
+          formatBranchHours(hoursBranch.openTime, hoursBranch.closeTime) || "—",
       });
     } else {
       setServiceHours({ days: "Monday - Sunday", time: "" });
     }
+
     setLoaded(true);
   }, []);
 
   useEffect(() => {
     loadBranchContacts();
     window.addEventListener("locationUpdated", loadBranchContacts);
-    return () => window.removeEventListener("locationUpdated", loadBranchContacts);
+    return () =>
+      window.removeEventListener("locationUpdated", loadBranchContacts);
   }, [loadBranchContacts]);
 
   const handleScrollAction = () => {
@@ -75,7 +87,10 @@ const Footer = () => {
   const formatAddress = (branch) => {
     const parts = [];
     if (branch.address?.trim()) parts.push(branch.address.trim());
-    if (branch.city?.trim() && !branch.address?.toLowerCase().includes(branch.city.toLowerCase())) {
+    if (
+      branch.city?.trim() &&
+      !branch.address?.toLowerCase().includes(branch.city.toLowerCase())
+    ) {
       parts.push(branch.city.trim());
     }
     return parts.join(", ") || branch.city || "—";
@@ -110,11 +125,13 @@ const Footer = () => {
                 <p className="text-sm opacity-70">Loading branch details…</p>
               )}
               {loaded && branches.length === 0 && (
-                <p className="text-sm opacity-70">Branch contact details are not available yet.</p>
+                <p className="text-sm opacity-70">
+                  Branch contact details are not available yet.
+                </p>
               )}
               {branches.map((branch, index) => (
                 <div key={branch.id} className={index !== 0 ? "pt-2" : ""}>
-                  <p className="font-black bg-[var(--accent-white) uppercase text-sm tracking-widest mb-1 text-[var(--primary-bg)] px-1 inline-block">
+                  <p className="font-black  uppercase text-sm tracking-widest mb-1 text-white px-1 inline-block">
                     {branch.name}
                     {branch.city ? ` — ${branch.city}` : ""}
                   </p>
@@ -131,14 +148,11 @@ const Footer = () => {
                 <h4
                   className={`font-black uppercase tracking-widest text-lg mb-2 ${secondaryColor}`}
                 >
-                  Service Hours
+                  Service Days
                 </h4>
                 <div className="flex justify-between max-w-sm opacity-80">
                   <span className="font-bold uppercase text-sm">
                     {serviceHours.days}
-                  </span>
-                  <span className="font-black text-sm">
-                    {loaded ? (serviceHours.time || "—") : "…"}
                   </span>
                 </div>
               </div>

@@ -84,7 +84,6 @@ const ExploreTheMenu = () => {
     };
   }, []);
 
-  // Filtered list for UI display based on search
   const filteredCategories = categories.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -107,17 +106,15 @@ const ExploreTheMenu = () => {
     setActiveId(category.id);
 
     if (swiperInstance) {
-      // Find index from the absolute data array to prevent slider mismatches during search
       const absoluteIndex = categories.findIndex((c) => c.id === category.id);
       if (absoluteIndex !== -1) {
         swiperInstance.slideTo(absoluteIndex, 600);
       }
     }
 
-    // Dynamic target selection synchronized with CategoryStickyHeader
     const section = document.getElementById(`section-${category.id}`);
     if (section) {
-      const yOffset = -140; // Adjusted for sticky header spacing alignment
+      const yOffset = -140;
       const y =
         section.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: "smooth" });
