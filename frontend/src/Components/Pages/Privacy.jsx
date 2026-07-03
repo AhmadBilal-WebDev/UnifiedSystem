@@ -129,7 +129,7 @@ const PrivacyPolicy = () => {
           <p className="text-gray-700 leading-relaxed">
             We are dedicated to using fresh, high-quality ingredients to ensure
             the best taste and overall experience. Our priority is to deliver
-            your order fresh, and on time.
+            your order fresh, fast and on time.
           </p>
           <p className="text-gray-700 font-medium mt-4">
             For any questions or support, please reach out to us through our
