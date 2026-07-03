@@ -54,14 +54,7 @@ const LogoutModal = ({ onClose, onConfirm }) => {
         </div>
 
         <p className="text-gray-500 font-bold text-sm mb-6 px-2 uppercase italic leading-relaxed">
-          Are you sure you want to logout from <br />
-          <span
-            style={{ color: "var(--profile-primary, #f97316)" }}
-            className="font-black"
-          >
-            Delight Crust
-          </span>
-          ?
+          Are you sure you want to logout 
         </p>
 
         <div className="flex flex-col gap-2.5">

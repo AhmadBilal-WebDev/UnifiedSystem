@@ -123,15 +123,18 @@ const PrivacyPolicy = () => {
         </section>
 
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-12">
-          <h3 className="text-xl font-bold mb-2 text-gray-900">Contact Us</h3>
-          <p className="text-gray-700">
-            If you have any questions about this Privacy Policy, please contact
-            us at:
+          <h3 className="text-xl font-bold mb-2 text-gray-900">
+            General Information
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            We are dedicated to using fresh, high-quality ingredients to ensure
+            the best taste and overall experience. Our priority is to deliver
+            your order fresh, fast and on time.
           </p>
-          <p className="font-medium text-[#d44a1c] mt-2">
-            Email: support@delightcrust.com
+          <p className="text-gray-700 font-medium mt-4">
+            For any questions or support, please reach out to us through our
+            official support channels.
           </p>
-          <p className="text-gray-700 font-medium">Location: Pakistan</p>
         </div>
         <div className="flex justify-center pt-12 ">
           <button
