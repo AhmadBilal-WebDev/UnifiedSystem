@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed": "node src/Seeds/seed.js"
+    "seed": "node src/Seeds/seed.js",
+    "setup": "node scripts/setup.mjs",
+    "fix-login": "node scripts/fix-admin-login.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

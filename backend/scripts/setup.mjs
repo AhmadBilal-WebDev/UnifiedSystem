@@ -1,15 +1,21 @@
 /**
  * Restaurant System — First Time Setup
- * Run: node setup.mjs
+ * Run from backend/: npm run setup
  *
  * Creates: Restaurant + Branch + Admin (staff) user + sample category/product
  * so you can immediately see the live connection between Dashboard and Website.
  */
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import bcryptjs from "bcryptjs";
-const bcrypt = bcryptjs.default ?? bcryptjs;
 
-const MONGO_URI = "mongodb://127.0.0.1:27017/delightcrust";
+const bcrypt = bcryptjs.default ?? bcryptjs;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "../.env") });
+
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/delightcrust";
 
 async function main() {
   console.log("\n🔌 Connecting to MongoDB...");

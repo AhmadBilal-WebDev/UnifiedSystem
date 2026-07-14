@@ -1,15 +1,21 @@
 /**
  * Restaurant System — Diagnose & Fix Admin Login
- * Run: node fix-admin-login.mjs
+ * Run from backend/: npm run fix-login
  *
  * This checks every possible reason "admin@delightcrust.com" might not be
  * able to log in, prints exactly what it finds, and fixes it.
  */
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import bcryptjs from "bcryptjs";
-const bcrypt = bcryptjs.default ?? bcryptjs;
 
-const MONGO_URI = "mongodb://127.0.0.1:27017/delightcrust";
+const bcrypt = bcryptjs.default ?? bcryptjs;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "../.env") });
+
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/delightcrust";
 const EMAIL = "admin@delightcrust.com";
 const PASSWORD = "Admin@123";
 
