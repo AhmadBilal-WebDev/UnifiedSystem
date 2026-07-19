@@ -5,11 +5,18 @@ import Customer from "../../Models/Customer.js";
 import Branch from "../../Models/Branch.js";
 
 const setAuthCookie = (res, customerId) => {
-  const token = jwt.sign({ id: customerId, type: "customer" }, process.env.JWT_SECRET, { expiresIn: "30d" });
-  const isProd = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+  const expiresIn = process.env.JWT_EXPIRES_IN || "30d";
+  const token = jwt.sign(
+    { id: customerId, type: "customer" },
+    process.env.JWT_SECRET,
+    { expiresIn },
+  );
+  const secure =
+    process.env.COOKIE_SECURE === "true" ||
+    process.env.NODE_ENV === "production";
   res.cookie("jwt", token, {
     httpOnly: true,
-    secure: isProd,
+    secure,
     sameSite: "lax",
     path: "/",
     maxAge: 30 * 24 * 60 * 60 * 1000,

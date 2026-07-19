@@ -34,32 +34,37 @@ npm run dev     # http://localhost:5173
 VITE_API_URL=http://localhost:5000
 ```
 
-`backend/.env`:
+`backend/.env` (local active; Vercel block is commented inside the same file):
 ```
 MONGO_URI=...
 JWT_SECRET=...
 FRONTEND_URL=http://localhost:5173
 ```
 
+Vercel URLs:
+- Frontend: https://delightcrust.vercel.app
+- Backend: https://delightcrustbackend.vercel.app
+
 ## Vercel deploy (same as core-admin-hub — 2 projects)
 
 ### 1) Backend
 
 1. New Vercel project → Root Directory = **`backend`**
-2. Env vars: `MONGO_URI` (Atlas), `JWT_SECRET`, `FRONTEND_URL` (frontend Vercel URL), `NODE_ENV=production`
+2. Paste env vars from `backend/.env` (use Atlas for `MONGO_URI`, set `FRONTEND_URL` to frontend Vercel URL, `NODE_ENV=production`, `COOKIE_SECURE=true`)
 3. Deploy → copy URL, e.g. `https://unifiedsystem-api.vercel.app`
 
 ### 2) Frontend
 
 1. New Vercel project → Root Directory = **`frontend`**
-2. Env var: `VITE_API_URL` = backend URL from step 1  
-   (**not** the frontend URL — that caused HTTP 405 before)
+2. Env var: `VITE_API_URL` = backend URL from step 1
 3. Deploy
 
-| Project   | Root Directory | Important env                          |
-|-----------|----------------|----------------------------------------|
-| Backend   | `backend`      | `MONGO_URI`, `JWT_SECRET`, `FRONTEND_URL` |
-| Frontend  | `frontend`     | `VITE_API_URL` = backend Vercel URL    |
+| Project   | Root Directory | Important env                                      |
+|-----------|----------------|----------------------------------------------------|
+| Backend   | `backend`      | All from `.env` (Atlas `MONGO_URI`, `FRONTEND_URL`) |
+| Frontend  | `frontend`     | `VITE_API_URL` = backend Vercel URL                |
+
+> Do **not** add `VERCEL` to `.env`. Vercel sets that automatically if needed; this app does not use it.
 
 ## URLs
 

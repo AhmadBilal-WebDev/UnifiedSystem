@@ -115,7 +115,7 @@ export const createStaff = async (req, res) => {
       status: "active",
     });
 
-    const loginUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/admin`;
+    const loginUrl = `${process.env.FRONTEND_URL}/admin`;
     const emailResult = await sendEmail({
       to: normalizedEmail,
       subject: "Your RestaurantOS staff account",
@@ -181,7 +181,7 @@ export const resetStaffPassword = async (req, res) => {
     staff.status = "active";
     await staff.save();
 
-    const loginUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/admin`;
+    const loginUrl = `${process.env.FRONTEND_URL}/admin`;
     const emailResult = await sendEmail({
       to: staff.email,
       subject: "Your RestaurantOS password was reset",

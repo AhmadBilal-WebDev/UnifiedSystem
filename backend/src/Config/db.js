@@ -10,22 +10,23 @@ const connectDB = async () => {
   if (cached.conn) return cached.conn;
 
   if (!process.env.MONGO_URI) {
-    throw new Error("MONGO_URI is not set");
+    throw new Error("MONGO_URI is not set in .env");
   }
 
   if (!cached.promise) {
+    const maxPoolSize = Number(process.env.MONGO_MAX_POOL_SIZE) || 10;
+
     cached.promise = mongoose
       .connect(process.env.MONGO_URI, {
         bufferCommands: false,
-        maxPoolSize: process.env.VERCEL ? 5 : 10,
+        maxPoolSize,
       })
       .then(async (conn) => {
-        console.log("✅ MongoDB Connected");
+        console.log("DB Connected Succesfull!");
         try {
           await Category.syncIndexes();
-          console.log("✅ Category indexes synced");
         } catch (indexErr) {
-          console.warn("⚠️  Could not sync Category indexes:", indexErr.message);
+          console.warn("Could not sync Category indexes:", indexErr.message);
         }
         return conn;
       });
@@ -35,7 +36,7 @@ const connectDB = async () => {
     cached.conn = await cached.promise;
   } catch (error) {
     cached.promise = null;
-    console.error("❌ MongoDB Error:", error.message);
+    console.error("MongoDB Error:", error.message);
     throw error;
   }
 

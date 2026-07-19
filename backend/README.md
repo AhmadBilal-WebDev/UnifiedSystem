@@ -1,7 +1,5 @@
 # Backend — Restaurant API
 
-Express + MongoDB. Same Vercel setup as **core-admin-hub/backend**.
-
 ## Local
 
 ```bash
@@ -11,8 +9,12 @@ npm run setup
 npm run dev
 ```
 
+Sab settings **`.env`** se — local active, Vercel block comments me.
+
 ## Vercel
 
 1. Root Directory: **`backend`**
-2. Uses `vercel.json` → `server.js` as `@vercel/node`
-3. Env: `MONGO_URI` (Atlas), `JWT_SECRET`, `FRONTEND_URL` (frontend site URL), `NODE_ENV=production`
+2. `.env` ke commented Vercel block ko Vercel Environment Variables me paste karo
+3. URLs:
+   - Frontend: https://delightcrust.vercel.app → `FRONTEND_URL`
+   - Backend: https://delightcrustbackend.vercel.app
