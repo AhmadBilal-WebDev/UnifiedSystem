@@ -1,20 +1,20 @@
-# Backend — Restaurant API
+# Backend
 
 ## Local
-
 ```bash
 cd backend
 npm install
 npm run setup
 npm run dev
 ```
+Use active (uncommented) block in `.env`.
 
-Sab settings **`.env`** se — local active, Vercel block comments me.
+## Vercel (delightcrustbackend)
+Paste the **commented Vercel block** from `.env` into Environment Variables.
 
-## Vercel
+Critical:
+- `MONGO_URI` must include DB name: `...mongodb.net/delightcrust?...`
+- `FRONTEND_URL=https://delightcrust.vercel.app`
+- Redeploy after env changes
 
-1. Root Directory: **`backend`**
-2. `.env` ke commented Vercel block ko Vercel Environment Variables me paste karo
-3. URLs:
-   - Frontend: https://delightcrust.vercel.app → `FRONTEND_URL`
-   - Backend: https://delightcrustbackend.vercel.app
+DB connects via middleware before every request (fixes cold-start login 500).

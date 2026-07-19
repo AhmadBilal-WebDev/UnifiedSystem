@@ -1,13 +1,24 @@
 import mongoose from "mongoose";
 import Category from "../Models/Category.js";
 
+/**
+ * Cached Mongo connection for local + Vercel serverless.
+ * Always `await connectDB()` before any Model query.
+ */
 let cached = global._mongooseConn;
 if (!cached) {
-  cached = global._mongooseConn = { conn: null, promise: null };
+  cached = global._mongooseConn = {
+    conn: null,
+    promise: null,
+    indexesSynced: false,
+  };
 }
 
 const connectDB = async () => {
-  if (cached.conn) return cached.conn;
+  // Already connected
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
+  }
 
   if (!process.env.MONGO_URI) {
     throw new Error("MONGO_URI is not set in .env");
@@ -18,17 +29,22 @@ const connectDB = async () => {
 
     cached.promise = mongoose
       .connect(process.env.MONGO_URI, {
-        bufferCommands: false,
         maxPoolSize,
+        serverSelectionTimeoutMS: 20000,
+        // Keep buffering ON until connected — middleware still awaits connect
+        bufferCommands: true,
       })
-      .then(async (conn) => {
+      .then(async (m) => {
         console.log("DB Connected Succesfull!");
-        try {
-          await Category.syncIndexes();
-        } catch (indexErr) {
-          console.warn("Could not sync Category indexes:", indexErr.message);
+        if (!cached.indexesSynced) {
+          try {
+            await Category.syncIndexes();
+            cached.indexesSynced = true;
+          } catch (indexErr) {
+            console.warn("Could not sync Category indexes:", indexErr.message);
+          }
         }
-        return conn;
+        return m;
       });
   }
 
@@ -36,6 +52,7 @@ const connectDB = async () => {
     cached.conn = await cached.promise;
   } catch (error) {
     cached.promise = null;
+    cached.conn = null;
     console.error("MongoDB Error:", error.message);
     throw error;
   }

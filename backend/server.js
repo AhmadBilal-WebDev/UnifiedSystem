@@ -22,7 +22,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ── CORS (origins from .env only) ─────────────────────────────────
+// ── CORS (from .env) ──────────────────────────────────────────────
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   ...(process.env.FRONTEND_URLS || "")
@@ -33,11 +33,13 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins.length
-      ? allowedOrigins
-      : process.env.FRONTEND_URL,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(null, false);
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
 );
 
@@ -46,7 +48,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
-// ── Rate limits (values from .env) ────────────────────────────────
+// ── Await Mongo before every request (Vercel cold start safe) ─────
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB middleware:", err.message);
+    res.status(503).json({
+      success: false,
+      message: "Database unavailable",
+      error: err.message,
+    });
+  }
+});
+
+// ── Rate limits (from .env) ───────────────────────────────────────
 const rateWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000;
 const rateMax = Number(process.env.RATE_LIMIT_MAX) || 20;
 app.use("/login", rateLimit({ windowMs: rateWindowMs, max: rateMax }));
@@ -104,7 +121,7 @@ app.get("/", (req, res) => {
   res.send("Backend Connected Succesfull!");
 });
 app.get("/api/health", (req, res) =>
-  res.json({ success: true, status: "ok" }),
+  res.json({ success: true, status: "ok", db: true }),
 );
 
 // ── Routes ────────────────────────────────────────────────────────
@@ -115,18 +132,26 @@ app.use(adminRoutes);
 app.use((req, res) =>
   res.status(404).json({ success: false, message: "Route not found" }),
 );
-app.use((err, req, res, next) =>
-  res.status(500).json({ success: false, message: err.message }),
-);
-
-// ── Init DB (same pattern as core-admin-hub) ──────────────────────
-const initialize = async () => {
-  await connectDB();
-};
-initialize();
-
-app.listen(PORT, () => {
-  console.log(`Server is running on: http://localhost:${PORT}`);
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({ success: false, message: err.message });
 });
+
+// Warm the DB connection as soon as the module loads (local + Vercel)
+connectDB().catch((err) => console.error("Initial DB connect:", err.message));
+
+// Local only: open a port. Vercel sets VERCEL=1 automatically (not in .env).
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server is running on: http://localhost:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to start:", err.message);
+      process.exit(1);
+    });
+}
 
 export default app;
