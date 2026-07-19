@@ -11,6 +11,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { CONTACT_CONFIG } from "../../Contants/Config";
+import { getApiBase } from "../../lib/apiBase.js";
+
+const API = getApiBase();
 
 const PageLoader = () => (
   <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
@@ -86,7 +89,7 @@ const SettingsPage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/profile`, {
+        const res = await axios.get(`${API}/api/public/profile`, {
           withCredentials: true,
         });
 
@@ -119,7 +122,7 @@ const SettingsPage = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/delete-account`, {
+      await axios.delete(`${API}/api/public/delete-account`, {
         withCredentials: true,
       });
 

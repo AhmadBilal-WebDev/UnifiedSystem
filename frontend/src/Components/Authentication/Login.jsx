@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { getApiBase } from "../../lib/apiBase.js";
+
+const API = getApiBase();
 
 const LoginModal = ({ isOpen, onClose, openRegister, setUser }) => {
   const [email, setEmail] = useState("");
@@ -30,7 +33,7 @@ const LoginModal = ({ isOpen, onClose, openRegister, setUser }) => {
       setLoading(true);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/login`,
+        `${API}/login`,
         { email },
         { withCredentials: true },
       );

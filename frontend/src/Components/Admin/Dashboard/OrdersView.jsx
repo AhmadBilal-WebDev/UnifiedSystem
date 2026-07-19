@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Loader2,
   Phone,
@@ -19,7 +19,8 @@ import {
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
-const backendApi = import.meta.env.VITE_API_URL;
+import { getApiBase } from "../../../lib/apiBase.js";
+const backendApi = getApiBase();
 
 export default function OrdersView({ selectedBranchId }) {
   const [orders, setOrders] = useState([]);
@@ -567,7 +568,7 @@ export default function OrdersView({ selectedBranchId }) {
                           <div className="mt-1.5 space-y-0.5 border-t border-slate-900/60 pt-1.5">
                             {item.selectedSize && (
                               <p className="text-[10px] text-blue-400 font-medium">
-                                ↳ Size: {item.selectedSize.name} (+Rs.{" "}
+                                ? Size: {item.selectedSize.name} (+Rs.{" "}
                                 {item.selectedSize.price})
                               </p>
                             )}
@@ -576,7 +577,7 @@ export default function OrdersView({ selectedBranchId }) {
                                 key={idx}
                                 className="text-[10px] text-rose-400 font-medium"
                               >
-                                ↳ Extra: {ex.name} (+Rs. {ex.price})
+                                ? Extra: {ex.name} (+Rs. {ex.price})
                               </p>
                             ))}
                             {item.addons?.map((ad, idx) => (
@@ -584,7 +585,7 @@ export default function OrdersView({ selectedBranchId }) {
                                 key={idx}
                                 className="text-[10px] text-amber-400 font-medium"
                               >
-                                ↳ Addon: {ad.name} (+Rs. {ad.price})
+                                ? Addon: {ad.name} (+Rs. {ad.price})
                               </p>
                             ))}
 

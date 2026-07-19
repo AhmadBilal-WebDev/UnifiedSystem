@@ -3,11 +3,10 @@ import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
-const backendApi = import.meta.env.VITE_API_URL;
-
+import { getApiBase } from "../../../lib/apiBase.js";
 import { logImg } from "../../../Contants/Config";
 
+const backendApi = getApiBase();
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -73,10 +72,10 @@ export function Login({ onLogin, buttonTitle = "Sign In" }) {
     setIsLoading(true);
 
     try {
-      const base = backendApi.endsWith("/")
+      const base = (backendApi || "").endsWith("/")
         ? backendApi.slice(0, -1)
-        : backendApi;
-      const finalUrl = `${base}/admin/login`;
+        : backendApi || "";
+      const finalUrl = `${base}/api/admin/login`;
 
       console.log("Hitting API Endpoint:", finalUrl);
 

@@ -21,7 +21,8 @@ import Swal from "sweetalert2";
 import ProductModal from "../../Components/Menu/Model/ProductModal";
 import CartSidebar from "../../Components/Menu/Model/CartSidebar";
 import OrderPopup from "../../Components/Menu/Model/ProductModal";
-const API_URL = import.meta.env.VITE_API_URL;
+import { getApiBase } from "../../lib/apiBase.js";
+const API_URL = getApiBase();
 
 const FoodSection = ({ catId, addToCart }) => {
   const [categoriesList, setCategoriesList] = useState([]);

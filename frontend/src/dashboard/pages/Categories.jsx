@@ -2,7 +2,8 @@ import React, { useState, useRef } from "react";
 import { useApp } from "../contexts/AppContext";
 import { SectionHeader, Modal } from "../components/ui";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { getApiBase } from "../../lib/apiBase.js";
+const API_BASE = getApiBase();
 const COLOR_OPTIONS = [
   "#f97316",
   "#eab308",

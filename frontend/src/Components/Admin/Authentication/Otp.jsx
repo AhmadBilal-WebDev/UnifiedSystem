@@ -4,7 +4,8 @@ import { Lock, KeyRound, CheckCircle, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const backendApi = import.meta.env.VITE_API_URL;
+import { getApiBase } from "../../../lib/apiBase.js";
+const backendApi = getApiBase();
 
 export function VerifyOTP({ buttonTitle = "Reset Password", onResetSuccess }) {
   const [email, setEmail] = useState("");
@@ -71,10 +72,10 @@ export function VerifyOTP({ buttonTitle = "Reset Password", onResetSuccess }) {
     setIsLoading(true);
 
     try {
-      const base = backendApi.endsWith("/")
+      const base = (backendApi || "").endsWith("/")
         ? backendApi.slice(0, -1)
-        : backendApi;
-      const finalUrl = `${base}/admin/reset-password`;
+        : backendApi || "";
+      const finalUrl = `${base}/api/admin/reset-password`;
 
       const response = await axios.post(
         finalUrl,

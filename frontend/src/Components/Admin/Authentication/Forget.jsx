@@ -4,7 +4,8 @@ import { Mail, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const backendApi = import.meta.env.VITE_API_URL;
+import { getApiBase } from "../../../lib/apiBase.js";
+const backendApi = getApiBase();
 
 export function Forget({ buttonTitle = "Send Reset Link" }) {
   const [email, setEmail] = useState("");
@@ -29,10 +30,10 @@ export function Forget({ buttonTitle = "Send Reset Link" }) {
     setIsLoading(true);
 
     try {
-      const base = backendApi.endsWith("/")
+      const base = (backendApi || "").endsWith("/")
         ? backendApi.slice(0, -1)
-        : backendApi;
-      const finalUrl = `${base}/admin/forgot-password`;
+        : backendApi || "";
+      const finalUrl = `${base}/api/admin/forgot-password`;
 
       const response = await axios.post(
         finalUrl,

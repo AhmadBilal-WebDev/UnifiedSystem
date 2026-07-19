@@ -1,3 +1,4 @@
+import { getApiBase } from "../../../lib/apiBase.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
@@ -83,7 +84,7 @@ export function BranchDashboard() {
         }
 
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/admin/branches`,
+          `${getApiBase()}/api/admin/branches`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
 

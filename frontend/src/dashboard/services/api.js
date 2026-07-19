@@ -6,9 +6,9 @@
  *        const data = await api.dashboard.getStats();
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : "http://localhost:5000/api";
+import { getApiRoot } from "../../lib/apiBase.js";
+
+const BASE_URL = getApiRoot();
 
 // ─── Token management ─────────────────────────────────────────────────────────
 export const getToken = () => localStorage.getItem("ros_admin_token");

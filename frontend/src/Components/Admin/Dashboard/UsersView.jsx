@@ -1,3 +1,4 @@
+import { getApiBase } from "../../../lib/apiBase.js";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -25,7 +26,7 @@ export default function UsersView({ selectedBranchId }) {
         const token = localStorage.getItem("adminToken");
         // URL check karein: endpoint sahi hona chahiye
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/admin/registered-users?parentBranchId=${selectedBranchId}`,
+          `${getApiBase()}/api/admin/registered-users?parentBranchId=${selectedBranchId}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         setUsers(res.data);

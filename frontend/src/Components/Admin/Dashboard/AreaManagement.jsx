@@ -1,3 +1,4 @@
+import { getApiBase } from "../../../lib/apiBase.js";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +19,8 @@ import {
   Activity,
 } from "lucide-react";
 
+const API_URL = getApiBase();
+
 export default function AreaManagementView({ selectedBranchId }) {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +39,6 @@ export default function AreaManagementView({ selectedBranchId }) {
     areaName: "",
   });
 
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const triggerToast = (message, type = "success") => {
     setToast({ show: true, message, type });

@@ -1,3 +1,4 @@
+import { getApiBase } from "../../../lib/apiBase.js";
 import React, { useState, useEffect } from "react";
 import {
   Check,
@@ -24,7 +25,7 @@ function HistoryView({ selectedBranchId }) {
         setLoading(true);
         const token = localStorage.getItem("adminToken");
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/admin/orders/history`,
+          `${getApiBase()}/admin/orders/history`,
           {
             headers: {
               Authorization: "Bearer " + token,

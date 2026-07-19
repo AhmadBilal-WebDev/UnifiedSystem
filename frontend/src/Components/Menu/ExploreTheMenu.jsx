@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { section_bg_img } from "../../Contants/Config";
 import { exploreTheMenu } from "../../Contants/Config";
-const API_URL = import.meta.env.VITE_API_URL;
+import { getApiBase } from "../../lib/apiBase.js";
+const API_URL = getApiBase();
 
 import "swiper/css";
 

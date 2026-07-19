@@ -3,7 +3,8 @@ import { useApp } from "../contexts/AppContext";
 import { fmt, SectionHeader, Modal } from "../components/ui";
 import { ALLERGENS_LIST, STOCK_OPTIONS } from "../data/mockData";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { getApiBase } from "../../lib/apiBase.js";
+const API_BASE = getApiBase();
 
 function ImageUploader({ value, onChange, type = "products" }) {
   const fileRef = useRef();

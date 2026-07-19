@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { section_bg_img, DELIVERY_FEE } from "../../Contants/Config";
 import AddressModal from "./Model/AddChange";
 import axios from "axios";
+import { getApiBase } from "../../lib/apiBase.js";
+
+const API = getApiBase();
 
 const ConfirmOrder = ({ onBack, onConfirm }) => {
   const navigate = useNavigate();
@@ -135,7 +138,7 @@ const ConfirmOrder = ({ onBack, onConfirm }) => {
       };
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/create`,
+        `${API}/create`,
         orderPayload,
         { withCredentials: true },
       );

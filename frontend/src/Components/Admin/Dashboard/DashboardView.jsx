@@ -1,3 +1,4 @@
+import { getApiBase } from "../../../lib/apiBase.js";
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -81,15 +82,15 @@ export default function DashboardOverview({ selectedBranchId }) {
 
         const [statsRes, ordersRes, topSellingRes] = await Promise.all([
           axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/dashboard-stats`,
+            `${getApiBase()}/api/admin/dashboard-stats`,
             config,
           ),
           axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/latest-orders`,
+            `${getApiBase()}/api/admin/latest-orders`,
             config,
           ),
           axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/top-selling`,
+            `${getApiBase()}/api/admin/top-selling`,
             config,
           ),
         ]);
@@ -110,7 +111,7 @@ export default function DashboardOverview({ selectedBranchId }) {
       try {
         const token = localStorage.getItem("adminToken");
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/admin/filtered-stats`,
+          `${getApiBase()}/api/admin/filtered-stats`,
           {
             headers: { Authorization: `Bearer ${token}` },
             params: { branchId: selectedBranchId, filter },

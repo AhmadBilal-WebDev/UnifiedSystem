@@ -12,6 +12,9 @@ import {
   Check,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { getApiBase } from "../../lib/apiBase.js";
+
+const API = getApiBase();
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -30,7 +33,7 @@ const MyOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/myorders`, {
+      const res = await axios.get(`${API}/myorders`, {
         withCredentials: true,
       });
       const sortedOrders = (res.data.orders || res.data).sort(
@@ -47,7 +50,7 @@ const MyOrders = () => {
   const confirmDeleteOrder = async () => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/orders/${orderToDelete}`,
+        `${API}/orders/${orderToDelete}`,
         {
           withCredentials: true,
         },
@@ -71,7 +74,7 @@ const MyOrders = () => {
 
   const confirmClearAll = async () => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/myorders/clear-all`, {
+      await axios.delete(`${API}/myorders/clear-all`, {
         withCredentials: true,
       });
       setOrders([]);

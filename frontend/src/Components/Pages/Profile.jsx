@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { locationData } from "../../Contants/Config";
+import { getApiBase } from "../../lib/apiBase.js";
+
+const API = getApiBase();
 
 const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -25,7 +28,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/profile`, {
+        const res = await axios.get(`${API}/api/public/profile`, {
           withCredentials: true,
         });
         setUserData(res.data.user || res.data);
@@ -54,7 +57,7 @@ const UserProfile = () => {
 
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/profile`,
+        `${API}/api/public/profile`,
         {
           name: userData.name,
           phone: userData.phone,

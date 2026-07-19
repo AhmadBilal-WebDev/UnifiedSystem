@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { locationData } from "../../Contants/Config";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { getApiBase } from "../../lib/apiBase.js";
+
+const API = getApiBase();
 
 const RegisterModal = ({ isOpen, onClose, openLogin, setUser }) => {
   const [formData, setFormData] = useState({
@@ -51,7 +54,7 @@ const RegisterModal = ({ isOpen, onClose, openLogin, setUser }) => {
       };
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/signup`,
+        `${API}/signup`,
         payload,
         { withCredentials: true },
       );

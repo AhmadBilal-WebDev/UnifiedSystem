@@ -1,3 +1,4 @@
+import { getApiBase } from "../../../lib/apiBase.js";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -55,7 +56,7 @@ export default function RollView({ selectedBranchId }) {
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
 
   const token = getCookie("adminToken") || localStorage.getItem("adminToken");
-  const baseUrl = import.meta.env.VITE_API_URL;
+  const baseUrl = getApiBase();
 
   const activeCount = roles.filter((r) => r.status !== "blocked").length;
   const blockedCount = roles.filter((r) => r.status === "blocked").length;

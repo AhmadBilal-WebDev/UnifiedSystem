@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import { getApiBase } from "../../lib/apiBase.js";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = getApiBase();
 
 const CategoryStickyHeader = ({ isVisible }) => {
   const [categories, setCategories] = useState([]);

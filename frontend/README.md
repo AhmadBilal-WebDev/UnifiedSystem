@@ -1,6 +1,6 @@
 # Frontend — Customer Website + Admin Dashboard
 
-React (Vite) app. Runs on port **5173**.
+Vite + React. Same Vercel setup as **core-admin-hub/frontend**.
 
 ## Local
 
@@ -10,25 +10,14 @@ npm install
 npm run dev
 ```
 
-Create `.env` (or copy `.env.example`):
-
+`.env`:
 ```
 VITE_API_URL=http://localhost:5000
 ```
 
-## Vercel deploy
+## Vercel
 
-1. Import repo → set **Root Directory** to `frontend`
-2. Framework: Vite
-3. Env var: `VITE_API_URL` = your **live backend URL**  
-   (e.g. `https://your-api.onrender.com` — NOT the Vercel frontend URL)
-4. Redeploy after changing env vars
-
-Without a separately deployed backend, login/API will fail (HTTP 405).
-
-## Pages
-
-| Page | URL |
-|------|-----|
-| Site | http://localhost:5173 |
-| Admin | http://localhost:5173/admin |
+1. Root Directory: **`frontend`**
+2. Env: `VITE_API_URL` = your **backend** Vercel URL  
+   (example: `https://unifiedsystem-api.vercel.app`)
+3. Do **not** set `VITE_API_URL` to this frontend’s own URL

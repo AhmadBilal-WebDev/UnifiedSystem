@@ -38,6 +38,11 @@ router.get(   "/profile",         customerCookieAuth, getUserProfile);
 router.put(   "/profile",         customerCookieAuth, updateUserProfile);
 router.delete("/delete-account",  customerCookieAuth, deleteAccount);
 
+// Same handlers under /api/* so Vercel SPA route /profile is not shadowed
+router.get(   "/api/public/profile",        customerCookieAuth, getUserProfile);
+router.put(   "/api/public/profile",        customerCookieAuth, updateUserProfile);
+router.delete("/api/public/delete-account", customerCookieAuth, deleteAccount);
+
 router.get(   "/orders/:id",          customerCookieAuth, getOrderById);
 router.delete("/orders/:id",          customerCookieAuth, cancelOrder);
 

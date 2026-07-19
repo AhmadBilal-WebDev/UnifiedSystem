@@ -3,13 +3,14 @@ import { FaClipboardList, FaCog } from "react-icons/fa";
 import { IoHome } from "react-icons/io5";
 import axios from "axios";
 import logoImg from "../assets/crust_trust_logo.png";
+import { getApiBase } from "../lib/apiBase.js";
 
 export let locationData = {};
 export let branchData = {};
 /** Full branch contact rows for footer / contact sections (loaded from API) */
 export let publicBranches = [];
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE = getApiBase();
 
 /** "09:00" → "9:00 AM", "15:30" → "3:30 PM" */
 export const formatBranchHours = (openTime, closeTime) => {

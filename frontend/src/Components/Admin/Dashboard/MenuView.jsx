@@ -17,7 +17,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 
-const backendApi = import.meta.env.VITE_API_URL;
+import { getApiBase } from "../../../lib/apiBase.js";
+const backendApi = getApiBase();
 
 export default function MenuView({ selectedBranchId }) {
   const [expandedCategory, setExpandedCategory] = useState(null);
